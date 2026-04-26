@@ -89,21 +89,22 @@ public class AuthController : ControllerBase
     }
 
     [HttpGet("facebook")]
-    public IActionResult Facebook([FromQuery] string? returnUrl = null)
+    public IActionResult Facebook()
     {
         if (!IsFacebookConfigured())
             return StatusCode(503, new { message = "Facebook authentication is not configured." });
 
-        var callbackUrl = Url.Action(nameof(FacebookCallback), "Auth", new { returnUrl }, Request.Scheme);
+        var callbackUrl = Url.Action(nameof(FacebookCallback), "Auth", null, Request.Scheme);
         var properties = new AuthenticationProperties { RedirectUri = callbackUrl };
         return Challenge(properties, FacebookDefaults.AuthenticationScheme);
     }
 
     [HttpGet("facebook/callback")]
-    public async Task<IActionResult> FacebookCallback([FromQuery] string? returnUrl = null)
+    public async Task<IActionResult> FacebookCallback()
     {
         if (!IsFacebookConfigured())
             return StatusCode(503, new { message = "Facebook authentication is not configured." });
+
         var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
         if (!result.Succeeded)
             return BadRequest(new { message = "Facebook authentication failed." });
@@ -117,14 +118,19 @@ public class AuthController : ControllerBase
 
         var user = await _userRepository.GetByFacebookIdAsync(facebookId);
 
-        if (user == null && !string.IsNullOrEmpty(email))
-            user = await _userRepository.GetByEmailAsync(email.ToLower().Trim());
+        var normalizedEmail = email?.ToLower().Trim();
+
+        if (user == null && !string.IsNullOrEmpty(normalizedEmail))
+            user = await _userRepository.GetByEmailAsync(normalizedEmail);
 
         if (user == null)
         {
+            if (string.IsNullOrEmpty(normalizedEmail))
+                return BadRequest(new { message = "A valid email address is required to create an account." });
+
             user = new User
             {
-                Email = email?.ToLower().Trim() ?? string.Empty,
+                Email = normalizedEmail,
                 DisplayName = name?.Trim() ?? "Facebook User",
                 FacebookId = facebookId,
                 Role = UserRole.User,
@@ -144,7 +150,7 @@ public class AuthController : ControllerBase
         await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
         var token = GenerateToken(user);
-        var loginResponse = new LoginResponse
+        return Ok(new LoginResponse
         {
             Token = token,
             UserId = user.Id,
@@ -152,19 +158,7 @@ public class AuthController : ControllerBase
             DisplayName = user.DisplayName,
             Role = user.Role.ToString(),
             ExpiresAt = DateTime.UtcNow.AddHours(8)
-        };
-
-        if (!string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Absolute))
-        {
-            var uri = new Uri(returnUrl);
-            var allowedOrigins = _configuration.GetSection("AllowedOrigins").Get<string[]>()
-                ?? new[] { "http://localhost:3000", "http://localhost:5173" };
-
-            if (allowedOrigins.Any(o => uri.GetLeftPart(UriPartial.Authority).Equals(o, StringComparison.OrdinalIgnoreCase)))
-                return Redirect($"{returnUrl}?token={Uri.EscapeDataString(token)}");
-        }
-
-        return Ok(loginResponse);
+        });
     }
 
     private bool IsFacebookConfigured()

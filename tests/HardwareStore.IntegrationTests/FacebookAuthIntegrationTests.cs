@@ -16,6 +16,7 @@ using System.Text.Json;
 
 namespace HardwareStore.IntegrationTests;
 
+[Collection("FacebookAuth")]
 public class FacebookAuthIntegrationTests : IClassFixture<FacebookWebApplicationFactory>
 {
     private readonly FacebookWebApplicationFactory _factory;
@@ -191,6 +192,8 @@ public class FacebookWebApplicationFactory : CustomWebApplicationFactory
 
 public class FakeCookieAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>, IAuthenticationSignOutHandler
 {
+    // Thread safety is ensured by the [Collection("FacebookAuth")] attribute,
+    // which guarantees sequential execution within this test collection.
     private static volatile ClaimsPrincipal? _principal;
 
     public static void SetPrincipal(ClaimsPrincipal? principal) => _principal = principal;
