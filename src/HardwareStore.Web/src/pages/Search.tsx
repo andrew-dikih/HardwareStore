@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { parseQuery, createSearch } from '../api';
+import { useSpeechRecognition } from '../hooks/useSpeechRecognition';
 import type { ProductSelection, RetailerDto, ParseQueryResponse } from '../types';
 import type { AxiosError } from 'axios';
 
@@ -12,6 +13,17 @@ export default function Search() {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleSpeechResult = useCallback((transcript: string) => {
+    setQuery((prev) => (prev ? `${prev} ${transcript}` : transcript));
+  }, []);
+
+  const handleSpeechError = useCallback((msg: string) => {
+    setError(msg);
+  }, []);
+
+  const { isListening, isSupported, start: startListening, stop: stopListening } =
+    useSpeechRecognition({ onResult: handleSpeechResult, onError: handleSpeechError });
 
   const [parsed, setParsed] = useState<ParseQueryResponse | null>(null);
   const [products, setProducts] = useState<ProductSelection[]>([]);
@@ -92,14 +104,40 @@ export default function Search() {
         </div>
         <div className="bg-white rounded-2xl shadow-md p-6">
           <form onSubmit={handleParse} className="space-y-4">
-            <textarea
-              className="w-full border border-gray-300 rounded-xl px-4 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
-              rows={5}
-              placeholder="e.g. I want to build a fence around my backyard. It's about 100 feet long and 6 feet tall."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              maxLength={500}
-            />
+            <div className="relative">
+              <textarea
+                className="w-full border border-gray-300 rounded-xl pl-4 pr-12 py-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-orange-400"
+                rows={5}
+                placeholder="e.g. I want to build a fence around my backyard. It's about 100 feet long and 6 feet tall."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                maxLength={500}
+              />
+              {isSupported && (
+                <button
+                  type="button"
+                  onClick={isListening ? stopListening : startListening}
+                  title={isListening ? 'Stop recording' : 'Speak your query'}
+                  className={`absolute bottom-3 right-3 p-1.5 rounded-full transition focus:outline-none focus:ring-2 focus:ring-orange-400 ${
+                    isListening
+                      ? 'bg-red-100 text-red-600 hover:bg-red-200 animate-pulse'
+                      : 'text-gray-400 hover:text-orange-600 hover:bg-orange-50'
+                  }`}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                    className="w-5 h-5"
+                    aria-hidden="true"
+                  >
+                    <path d="M12 1a4 4 0 0 1 4 4v6a4 4 0 0 1-8 0V5a4 4 0 0 1 4-4Z" />
+                    <path d="M19 11a1 1 0 1 0-2 0 5 5 0 0 1-10 0 1 1 0 1 0-2 0 7 7 0 0 0 6 6.93V20H9a1 1 0 1 0 0 2h6a1 1 0 1 0 0-2h-2v-2.07A7 7 0 0 0 19 11Z" />
+                  </svg>
+                  <span className="sr-only">{isListening ? 'Stop recording' : 'Speak your query'}</span>
+                </button>
+              )}
+            </div>
             <div className="flex justify-between items-center text-xs text-gray-400">
               <span>{query.length}/500</span>
             </div>
