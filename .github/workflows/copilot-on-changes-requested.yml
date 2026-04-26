@@ -1,0 +1,61 @@
+name: Copilot Agent - Address Review Comments
+
+on:
+  pull_request_review:
+    types: [submitted]
+
+jobs:
+  trigger-copilot:
+    name: Trigger Copilot Agent
+    runs-on: ubuntu-latest
+    if: |
+      github.event.review.state == 'changes_requested' &&
+      github.event.pull_request.base.ref == 'develop'
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Post Copilot agent comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const review = context.payload.review;
+            const pr = context.payload.pull_request;
+            const reviewer = review.user.login;
+
+            // Fetch inline review comments belonging to this review
+            const { data: allComments } = await github.rest.pulls.listReviewComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            const reviewComments = allComments.filter(
+              c => c.pull_request_review_id === review.id
+            );
+
+            let body = `@github-copilot @${reviewer} has requested changes on this PR.\n\n`;
+
+            if (review.body) {
+              body += `**Review summary:**\n${review.body}\n\n`;
+            }
+
+            if (reviewComments.length > 0) {
+              body += `**Inline comments:**\n`;
+              for (const comment of reviewComments) {
+                // comment.line is the current line; original_line applies when the diff position is outdated
+                const line = comment.line ?? comment.original_line;
+                body += `- \`${comment.path}\``;
+                if (line) body += ` (line ${line})`;
+                body += `: ${comment.body}\n`;
+              }
+              body += '\n';
+            }
+
+            body += `Please address all of the requested changes and push the updates to this PR.`;
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: pr.number,
+              body,
+            });
