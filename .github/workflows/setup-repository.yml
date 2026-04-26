@@ -1,0 +1,129 @@
+name: Repository Setup (One-Time)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "yes" to confirm you want to run one-time repository setup'
+        required: true
+        default: 'no'
+
+jobs:
+  setup-repository:
+    name: Configure Branches and Protection Rules
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: ${{ github.event.inputs.confirm == 'yes' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # Needs a PAT with 'repo' and 'admin:repo_hook' scopes to manage branch protection.
+          # Create a fine-grained PAT with "Administration (read & write)" repository permission
+          # and store it as the GH_SETUP_TOKEN secret.
+          token: ${{ secrets.GH_SETUP_TOKEN }}
+          fetch-depth: 0
+
+      - name: Create develop branch (if missing)
+        env:
+          GH_TOKEN: ${{ secrets.GH_SETUP_TOKEN }}
+        run: |
+          BRANCHES=$(gh api repos/${{ github.repository }}/branches --jq '.[].name')
+          if echo "$BRANCHES" | grep -qx "develop"; then
+            echo "develop branch already exists, skipping creation."
+          else
+            MAIN_SHA=$(gh api repos/${{ github.repository }}/git/refs/heads/main --jq '.object.sha')
+            gh api repos/${{ github.repository }}/git/refs \
+              --method POST \
+              -f ref="refs/heads/develop" \
+              -f sha="$MAIN_SHA"
+            echo "develop branch created."
+          fi
+
+      - name: Create 'release' label (if missing)
+        env:
+          GH_TOKEN: ${{ secrets.GH_SETUP_TOKEN }}
+        run: |
+          if gh api repos/${{ github.repository }}/labels/release > /dev/null 2>&1; then
+            echo "'release' label already exists, skipping."
+          else
+            gh api repos/${{ github.repository }}/labels \
+              --method POST \
+              -f name="release" \
+              -f color="0075ca" \
+              -f description="Marks a PR as a new API version release. Required to merge into main."
+            echo "'release' label created."
+          fi
+
+      - name: Protect main branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_SETUP_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/branches/main/protection \
+            --method PUT \
+            --header "Accept: application/vnd.github+json" \
+            --input - <<'EOF'
+          {
+            "required_status_checks": {
+              "strict": true,
+              "contexts": [
+                "Unit Tests",
+                "Integration Tests",
+                "Check for release label"
+              ]
+            },
+            "enforce_admins": true,
+            "required_pull_request_reviews": {
+              "dismiss_stale_reviews": true,
+              "require_code_owner_reviews": false,
+              "required_approving_review_count": 1
+            },
+            "restrictions": null,
+            "allow_force_pushes": false,
+            "allow_deletions": false,
+            "block_creations": false,
+            "required_conversation_resolution": true
+          }
+          EOF
+          echo "main branch protection applied."
+
+      - name: Protect develop branch
+        env:
+          GH_TOKEN: ${{ secrets.GH_SETUP_TOKEN }}
+        run: |
+          gh api repos/${{ github.repository }}/branches/develop/protection \
+            --method PUT \
+            --header "Accept: application/vnd.github+json" \
+            --input - <<'EOF'
+          {
+            "required_status_checks": {
+              "strict": true,
+              "contexts": [
+                "Unit Tests",
+                "Integration Tests"
+              ]
+            },
+            "enforce_admins": true,
+            "required_pull_request_reviews": {
+              "dismiss_stale_reviews": true,
+              "require_code_owner_reviews": false,
+              "required_approving_review_count": 1
+            },
+            "restrictions": null,
+            "allow_force_pushes": false,
+            "allow_deletions": false,
+            "block_creations": false,
+            "required_conversation_resolution": true
+          }
+          EOF
+          echo "develop branch protection applied."
+
+      - name: Summary
+        run: |
+          echo "## Repository Setup Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Configured:" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ \`develop\` branch created (or already existed)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ \`release\` label created (or already existed)" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ \`main\` branch protection: direct push blocked, PR required, CI + label-check required" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ \`develop\` branch protection: direct push blocked, PR required, CI required" >> $GITHUB_STEP_SUMMARY

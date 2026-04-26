@@ -43,8 +43,65 @@ npm run dev
 
 The Vite dev server proxies `/api` requests to `http://localhost:5000`.
 
+## Branch Strategy
+
+| Branch | Purpose | Merge Rules |
+|--------|---------|-------------|
+| `main` | Production releases | PR only · must be labeled **`release`** · CI must pass |
+| `develop` | Integration branch | PR only · CI must pass |
+
+All PRs must pass unit **and** integration tests, and unit test line coverage must be ≥ 70%.
+
+## CI/CD
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | PR → `main` or `develop` | Runs unit + integration tests; enforces 70% coverage |
+| `label-check.yml` | PR → `main` | Requires the **`release`** label (marks new API version) |
+| `deploy.yml` | Push to `main` | Builds and deploys to Azure Web App |
+| `setup-repository.yml` | Manual (`workflow_dispatch`) | One-time repo configuration (see below) |
+
+### One-Time Repository Setup
+
+After merging this PR into `main`:
+
+1. Create a GitHub fine-grained Personal Access Token (PAT) with **Administration (read & write)** permission on this repository.
+2. Add it as a repository secret named **`GH_SETUP_TOKEN`** (Settings → Secrets and variables → Actions).
+3. Go to **Actions → Repository Setup (One-Time)** and run the workflow (type `yes` in the confirmation field).
+
+The workflow will:
+- Create the `develop` branch from `main`
+- Create the `release` label
+- Apply branch protection to `main` (blocks direct push, requires PR with `release` label and passing CI)
+- Apply branch protection to `develop` (blocks direct push, requires PR with passing CI)
+
+### Azure Deployment Setup
+
+After the one-time setup, configure the CD pipeline:
+
+1. Create an Azure Web App for the API.
+2. Add the following **repository secrets**:
+   - `AZURE_CREDENTIALS` — JSON output of `az ad sp create-for-rbac --name "HardwareStore-Deploy" --role contributor --scopes /subscriptions/<sub-id>/resourceGroups/<rg> --json-auth`
+3. Add the following **repository variables** (Settings → Secrets and variables → Actions → Variables):
+   - `AZURE_WEBAPP_NAME` — name of your Azure Web App
+   - `AZURE_RESOURCE_GROUP` — name of your Azure resource group
+4. (Optional) Add a `production` environment in GitHub (Settings → Environments) with any required approval gates.
+
+## Running Tests
+
+```bash
+# Unit tests
+dotnet test tests/HardwareStore.UnitTests
+
+# Integration tests
+dotnet test tests/HardwareStore.IntegrationTests
+
+# All tests with coverage report
+dotnet test tests/HardwareStore.UnitTests --collect:"XPlat Code Coverage"
+```
+
 ## Tech Stack
 
 - **Backend**: ASP.NET Core 8, CosmosDB, MailKit, BCrypt, JWT auth
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS, React Router, Axios
-- **Hosting**: Azure Container Apps (Docker-ready)
+- **Hosting**: Azure Web App (CI/CD via GitHub Actions)
