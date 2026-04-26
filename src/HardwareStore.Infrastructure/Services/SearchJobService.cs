@@ -2,7 +2,6 @@ namespace HardwareStore.Infrastructure.Services;
 using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Models;
 using Microsoft.Extensions.Logging;
-using System.Collections.Concurrent;
 
 public class SearchJobService : ISearchJobService
 {
@@ -11,9 +10,6 @@ public class SearchJobService : ISearchJobService
     private readonly IRetailerRepository _retailerRepository;
     private readonly IEnumerable<IRetailerSearchClient> _retailerClients;
     private readonly ILogger<SearchJobService> _logger;
-
-    private static readonly ConcurrentQueue<string> _pendingSearches = new();
-    private static readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public SearchJobService(
         ISearchRepository searchRepository,
@@ -31,7 +27,7 @@ public class SearchJobService : ISearchJobService
 
     public Task EnqueueSearchAsync(string searchRequestId)
     {
-        _pendingSearches.Enqueue(searchRequestId);
+        // Enqueueing is handled by SearchBackgroundService.EnqueueSearch
         return Task.CompletedTask;
     }
 

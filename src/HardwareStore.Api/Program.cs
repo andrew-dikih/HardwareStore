@@ -119,7 +119,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-// SPA fallback for React
+// SPA fallback for React frontend (static files served from wwwroot in production)
 app.UseStaticFiles();
 app.MapFallbackToFile("index.html");
 
