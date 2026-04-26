@@ -9,6 +9,7 @@ public class SearchJobService : ISearchJobService
     private readonly IReportRepository _reportRepository;
     private readonly IRetailerRepository _retailerRepository;
     private readonly IEnumerable<IRetailerSearchClient> _retailerClients;
+    private readonly ISearchStatusNotifier _notifier;
     private readonly ILogger<SearchJobService> _logger;
 
     public SearchJobService(
@@ -16,12 +17,14 @@ public class SearchJobService : ISearchJobService
         IReportRepository reportRepository,
         IRetailerRepository retailerRepository,
         IEnumerable<IRetailerSearchClient> retailerClients,
+        ISearchStatusNotifier notifier,
         ILogger<SearchJobService> logger)
     {
         _searchRepository = searchRepository;
         _reportRepository = reportRepository;
         _retailerRepository = retailerRepository;
         _retailerClients = retailerClients;
+        _notifier = notifier;
         _logger = logger;
     }
 
@@ -44,6 +47,7 @@ public class SearchJobService : ISearchJobService
         {
             searchRequest.Status = SearchStatus.Processing;
             await _searchRepository.UpdateAsync(searchRequest);
+            await _notifier.NotifyStatusChangedAsync(searchRequestId, SearchStatus.Processing.ToString());
 
             var allProducts = searchRequest.SelectedProducts
                 .Where(p => p.IsSelected)
@@ -146,6 +150,7 @@ public class SearchJobService : ISearchJobService
             searchRequest.ReportId = savedReport.Id;
             searchRequest.CompletedAt = DateTime.UtcNow;
             await _searchRepository.UpdateAsync(searchRequest);
+            await _notifier.NotifyStatusChangedAsync(searchRequestId, SearchStatus.Completed.ToString(), savedReport.Id);
 
             _logger.LogInformation("Search {Id} completed with report {ReportId}", searchRequestId, savedReport.Id);
         }
@@ -155,6 +160,7 @@ public class SearchJobService : ISearchJobService
             searchRequest.Status = SearchStatus.Failed;
             searchRequest.ErrorMessage = ex.Message;
             await _searchRepository.UpdateAsync(searchRequest);
+            await _notifier.NotifyStatusChangedAsync(searchRequestId, SearchStatus.Failed.ToString(), errorMessage: ex.Message);
         }
     }
 }

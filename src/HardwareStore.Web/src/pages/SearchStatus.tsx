@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { getSearchStatus, getPublicSearchStatus } from '../api';
+import { getPublicSearchStatus } from '../api';
+import { useSearchStatus } from '../hooks/useSearchStatus';
 import type { SearchStatus as SearchStatusType } from '../types';
 
 export default function SearchStatusPage() {
@@ -9,21 +10,31 @@ export default function SearchStatusPage() {
   const isPublic = searchParams.get('public') === 'true';
   const navigate = useNavigate();
 
-  const [status, setStatus] = useState<SearchStatusType | null>(null);
-  const [error, setError] = useState('');
+  const handleCompleted = useCallback(
+    (reportId: string) => navigate(`/reports/${reportId}`, { replace: true }),
+    [navigate],
+  );
 
+  const { status: wsStatus, error: wsError } = useSearchStatus({
+    searchRequestId: id,
+    isPublic,
+    onCompleted: handleCompleted,
+  });
+
+  const [pollingStatus, setPollingStatus] = useState<SearchStatusType | null>(null);
+  const [pollingError, setPollingError] = useState('');
+
+  // Public searches: use polling (no auth token for WebSocket)
   useEffect(() => {
-    if (!id) return;
+    if (!id || !isPublic) return;
 
     let cancelled = false;
 
     const poll = async () => {
       try {
-        const res = isPublic
-          ? await getPublicSearchStatus(id)
-          : await getSearchStatus(id);
+        const res = await getPublicSearchStatus(id);
         if (cancelled) return;
-        setStatus(res.data);
+        setPollingStatus(res.data);
 
         if (res.data.status === 'Completed' && res.data.reportId) {
           navigate(`/reports/${res.data.reportId}`, { replace: true });
@@ -33,13 +44,16 @@ export default function SearchStatusPage() {
           setTimeout(poll, 2000);
         }
       } catch {
-        if (!cancelled) setError('Failed to get search status.');
+        if (!cancelled) setPollingError('Failed to get search status.');
       }
     };
 
     poll();
     return () => { cancelled = true; };
   }, [id, isPublic, navigate]);
+
+  const status = isPublic ? pollingStatus : wsStatus;
+  const error = isPublic ? pollingError : wsError;
 
   const statusColor: Record<string, string> = {
     Queued: 'bg-yellow-100 text-yellow-800',

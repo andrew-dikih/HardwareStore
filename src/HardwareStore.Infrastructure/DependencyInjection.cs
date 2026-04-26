@@ -25,6 +25,7 @@ public static class DependencyInjection
         services.AddScoped<INaturalLanguageService, NaturalLanguageService>();
         services.AddScoped<ISearchJobService, SearchJobService>();
         services.AddScoped<IRateLimitService, RateLimitService>();
+        services.AddScoped<ISearchStatusNotifier, NoOpSearchStatusNotifier>();
 
         // Retailer clients
         services.AddScoped<IRetailerSearchClient, HomeDepotClient>();
