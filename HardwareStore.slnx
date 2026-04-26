@@ -4,4 +4,8 @@
     <Project Path="src/HardwareStore.Core/HardwareStore.Core.csproj" />
     <Project Path="src/HardwareStore.Infrastructure/HardwareStore.Infrastructure.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/HardwareStore.UnitTests/HardwareStore.UnitTests.csproj" />
+    <Project Path="tests/HardwareStore.IntegrationTests/HardwareStore.IntegrationTests.csproj" />
+  </Folder>
 </Solution>

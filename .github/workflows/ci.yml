@@ -1,0 +1,93 @@
+name: CI - Tests and Coverage
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run unit tests with coverage
+        run: |
+          dotnet test tests/HardwareStore.UnitTests/HardwareStore.UnitTests.csproj \
+            --no-build \
+            --configuration Release \
+            --collect:"XPlat Code Coverage" \
+            --results-directory ./coverage \
+            -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
+
+      - name: Check coverage threshold
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: coverage/**/coverage.opencover.xml
+          targetdir: coverage/report
+          reporttypes: TextSummary
+          verbosity: Warning
+
+      - name: Enforce 70% coverage
+        run: |
+          COVERAGE=$(grep -oP 'Line coverage: \K[0-9.]+' coverage/report/Summary.txt || echo "0")
+          echo "Line coverage: $COVERAGE%"
+          THRESHOLD=70
+          if (( $(echo "$COVERAGE < $THRESHOLD" | bc -l) )); then
+            echo "Coverage $COVERAGE% is below the required $THRESHOLD%"
+            exit 1
+          fi
+          echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/report
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Run integration tests
+        run: |
+          dotnet test tests/HardwareStore.IntegrationTests/HardwareStore.IntegrationTests.csproj \
+            --no-build \
+            --configuration Release \
+            --logger "trx;LogFileName=integration-results.trx" \
+            --results-directory ./test-results
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: integration-test-results
+          path: test-results
