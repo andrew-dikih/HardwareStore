@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\HardwareStore.Core\HardwareStore.Core.csproj" />
+    <ProjectReference Include="..\..\src\HardwareStore.Infrastructure\HardwareStore.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>

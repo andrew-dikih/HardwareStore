@@ -1,34 +1,31 @@
-using Microsoft.AspNetCore.Mvc.Testing;
+using HardwareStore.IntegrationTests.TestFixtures;
 using System.Net;
 
 namespace HardwareStore.IntegrationTests;
 
 /// <summary>
-/// Integration tests use <see cref="WebApplicationFactory{TProgram}"/> to spin up an in-memory
-/// instance of the API. Add test-specific configuration and service overrides in the factory.
+/// Smoke test – verifies the application starts correctly with in-memory infrastructure.
 /// </summary>
-public class ApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
+public class ApiIntegrationTests : IClassFixture<CustomWebApplicationFactory>
 {
-    private readonly WebApplicationFactory<Program> _factory;
+    private readonly CustomWebApplicationFactory _factory;
 
-    public ApiIntegrationTests(WebApplicationFactory<Program> factory)
+    public ApiIntegrationTests(CustomWebApplicationFactory factory)
     {
         _factory = factory;
     }
 
     [Fact]
-    public async Task HealthEndpoint_ReturnsSuccess()
+    public async Task App_StartsSuccessfully_AndRespondsToRequests()
     {
-        // Arrange
         var client = _factory.CreateClient();
 
-        // Act
-        var response = await client.GetAsync("/health");
+        // Any endpoint will do; 401 proves the API started and auth is wired up.
+        var response = await client.GetAsync("/api/reports");
 
-        // Assert – 404 is acceptable if /health is not yet wired up; the intent is that the app starts.
         Assert.True(
-            response.StatusCode == HttpStatusCode.OK ||
-            response.StatusCode == HttpStatusCode.NotFound,
+            response.StatusCode == HttpStatusCode.Unauthorized ||
+            response.StatusCode == HttpStatusCode.OK,
             $"Unexpected status: {response.StatusCode}");
     }
 }

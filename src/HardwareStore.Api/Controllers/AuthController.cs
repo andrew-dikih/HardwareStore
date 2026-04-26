@@ -115,20 +115,20 @@ public class AuthController : ControllerBase
 }
 
 public record SignupRequest(
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.EmailAddress]
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.EmailAddress]
     string Email,
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.MinLength(2)]
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.MinLength(2)]
     string DisplayName,
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.MinLength(8)]
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.MinLength(8)]
     string Password);
 
 public record LoginRequest(
-    [property: System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.Required]
     string Email,
-    [property: System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.Required]
     string Password);
 
 public record LoginResponse

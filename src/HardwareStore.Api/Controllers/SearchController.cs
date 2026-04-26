@@ -164,8 +164,8 @@ public class SearchController : ControllerBase
 }
 
 public record ParseQueryRequest(
-    [property: System.ComponentModel.DataAnnotations.Required]
-    [property: System.ComponentModel.DataAnnotations.MaxLength(500)]
+    [System.ComponentModel.DataAnnotations.Required]
+    [System.ComponentModel.DataAnnotations.MaxLength(500)]
     string Query);
 
 public class ParseQueryResponse
