@@ -103,11 +103,10 @@ public class SearchController : ControllerBase
         if (!selectedRetailerIds.Any())
             return BadRequest(new { message = "No valid retailers selected." });
 
-        if (selectedRetailerIds.Count > 2 && user.Role != UserRole.Admin)
-        {
-            if (!user.AllowedRetailerIds.Any())
-                return Forbid();
-        }
+        // Standard users without explicit retailer permissions can only compare up to 2 retailers.
+        // Users with AllowedRetailerIds can compare any retailer they've been granted access to.
+        if (selectedRetailerIds.Count > 2 && user.Role != UserRole.Admin && !user.AllowedRetailerIds.Any())
+            return Forbid();
 
         var searchRequest = new SearchRequest
         {

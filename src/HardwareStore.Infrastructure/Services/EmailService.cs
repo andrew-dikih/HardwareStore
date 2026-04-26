@@ -81,7 +81,10 @@ public class EmailService : IEmailService
         if (string.IsNullOrEmpty(_settings.SmtpHost)) return;
         
         using var client = new SmtpClient();
-        await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, _settings.EnableSsl);
+        var socketOptions = _settings.EnableSsl
+            ? MailKit.Security.SecureSocketOptions.StartTlsWhenAvailable
+            : MailKit.Security.SecureSocketOptions.None;
+        await client.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, socketOptions);
         if (!string.IsNullOrEmpty(_settings.SmtpUser))
             await client.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
         await client.SendAsync(message);

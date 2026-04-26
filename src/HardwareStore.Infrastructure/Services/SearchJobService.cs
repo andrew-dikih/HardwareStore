@@ -27,7 +27,7 @@ public class SearchJobService : ISearchJobService
 
     public Task EnqueueSearchAsync(string searchRequestId)
     {
-        // Enqueueing is handled by SearchBackgroundService.EnqueueSearch
+        SearchBackgroundService.EnqueueSearch(searchRequestId);
         return Task.CompletedTask;
     }
 
