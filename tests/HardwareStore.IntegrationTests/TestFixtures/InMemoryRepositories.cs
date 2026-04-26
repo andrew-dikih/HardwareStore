@@ -14,6 +14,9 @@ public class InMemoryUserRepository : IUserRepository
     public Task<User?> GetByEmailAsync(string email) =>
         Task.FromResult(_store.Values.FirstOrDefault(u => u.Email == email));
 
+    public Task<User?> GetByFacebookIdAsync(string facebookId) =>
+        Task.FromResult(_store.Values.FirstOrDefault(u => u.FacebookId == facebookId));
+
     public Task<List<User>> GetAllAsync() =>
         Task.FromResult(_store.Values.ToList());
 

@@ -18,5 +18,6 @@ public class User
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ApprovedAt { get; set; }
     public string? ApprovedBy { get; set; }
+    public string? FacebookId { get; set; }
     public string DocumentType { get; set; } = "user";
 }

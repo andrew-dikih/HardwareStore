@@ -5,6 +5,7 @@ public interface IUserRepository
 {
     Task<User?> GetByIdAsync(string id);
     Task<User?> GetByEmailAsync(string email);
+    Task<User?> GetByFacebookIdAsync(string facebookId);
     Task<List<User>> GetAllAsync();
     Task<List<User>> GetPendingApprovalsAsync();
     Task<User> CreateAsync(User user);

@@ -1,6 +1,9 @@
 namespace HardwareStore.Api.Controllers;
 using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -83,6 +86,92 @@ public class AuthController : ControllerBase
             Role = user.Role.ToString(),
             ExpiresAt = DateTime.UtcNow.AddHours(8)
         });
+    }
+
+    [HttpGet("facebook")]
+    public IActionResult Facebook([FromQuery] string? returnUrl = null)
+    {
+        if (!IsFacebookConfigured())
+            return StatusCode(503, new { message = "Facebook authentication is not configured." });
+
+        var callbackUrl = Url.Action(nameof(FacebookCallback), "Auth", new { returnUrl }, Request.Scheme);
+        var properties = new AuthenticationProperties { RedirectUri = callbackUrl };
+        return Challenge(properties, FacebookDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("facebook/callback")]
+    public async Task<IActionResult> FacebookCallback([FromQuery] string? returnUrl = null)
+    {
+        if (!IsFacebookConfigured())
+            return StatusCode(503, new { message = "Facebook authentication is not configured." });
+        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        if (!result.Succeeded)
+            return BadRequest(new { message = "Facebook authentication failed." });
+
+        var facebookId = result.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = result.Principal?.FindFirstValue(ClaimTypes.Email);
+        var name = result.Principal?.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrEmpty(facebookId))
+            return BadRequest(new { message = "Could not retrieve Facebook user ID." });
+
+        var user = await _userRepository.GetByFacebookIdAsync(facebookId);
+
+        if (user == null && !string.IsNullOrEmpty(email))
+            user = await _userRepository.GetByEmailAsync(email.ToLower().Trim());
+
+        if (user == null)
+        {
+            user = new User
+            {
+                Email = email?.ToLower().Trim() ?? string.Empty,
+                DisplayName = name?.Trim() ?? "Facebook User",
+                FacebookId = facebookId,
+                Role = UserRole.User,
+                Status = UserStatus.Active
+            };
+            await _userRepository.CreateAsync(user);
+        }
+        else if (user.FacebookId == null)
+        {
+            user.FacebookId = facebookId;
+            await _userRepository.UpdateAsync(user);
+        }
+
+        if (user.Status == UserStatus.Suspended)
+            return Unauthorized(new { message = "Your account has been suspended." });
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        var token = GenerateToken(user);
+        var loginResponse = new LoginResponse
+        {
+            Token = token,
+            UserId = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Role = user.Role.ToString(),
+            ExpiresAt = DateTime.UtcNow.AddHours(8)
+        };
+
+        if (!string.IsNullOrEmpty(returnUrl) && Uri.IsWellFormedUriString(returnUrl, UriKind.Absolute))
+        {
+            var uri = new Uri(returnUrl);
+            var allowedOrigins = _configuration.GetSection("AllowedOrigins").Get<string[]>()
+                ?? new[] { "http://localhost:3000", "http://localhost:5173" };
+
+            if (allowedOrigins.Any(o => uri.GetLeftPart(UriPartial.Authority).Equals(o, StringComparison.OrdinalIgnoreCase)))
+                return Redirect($"{returnUrl}?token={Uri.EscapeDataString(token)}");
+        }
+
+        return Ok(loginResponse);
+    }
+
+    private bool IsFacebookConfigured()
+    {
+        var appId = _configuration["Facebook:AppId"];
+        var appSecret = _configuration["Facebook:AppSecret"];
+        return !string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(appSecret);
     }
 
     private string GenerateToken(User user)
