@@ -19,7 +19,7 @@ function BestBadge() {
   );
 }
 
-function ProductCard({ product, bestRetailerId }: { product: ProductComparison; bestRetailerId: string }) {
+function ProductCard({ product }: { product: ProductComparison }) {
   const sorted = [...product.retailerResults].sort((a, b) => a.price - b.price);
   const minPrice = sorted[0]?.price;
 
@@ -37,7 +37,6 @@ function ProductCard({ product, bestRetailerId }: { product: ProductComparison; 
             key={r.retailerId}
             result={r}
             isBest={r.price === minPrice && r.isAvailable}
-            isRecommended={r.retailerId === bestRetailerId}
           />
         ))}
       </div>
@@ -51,7 +50,6 @@ function RetailerRow({
 }: {
   result: RetailerProductResult;
   isBest: boolean;
-  isRecommended: boolean;
 }) {
   return (
     <div className={`px-4 py-3 flex items-start justify-between gap-3 ${isBest ? 'bg-green-50' : ''}`}>
@@ -179,7 +177,7 @@ export default function ReportDetail() {
       <div className="space-y-4">
         <h2 className="font-semibold text-gray-800">Product Details</h2>
         {mainProducts.map((p) => (
-          <ProductCard key={p.productSelectionId} product={p} bestRetailerId={report.recommendedRetailerId} />
+          <ProductCard key={p.productSelectionId} product={p} />
         ))}
       </div>
 
@@ -187,7 +185,7 @@ export default function ReportDetail() {
         <div className="space-y-4">
           <h2 className="font-semibold text-gray-800">Add-ons</h2>
           {addOns.map((p) => (
-            <ProductCard key={p.productSelectionId} product={p} bestRetailerId={report.recommendedRetailerId} />
+            <ProductCard key={p.productSelectionId} product={p} />
           ))}
         </div>
       )}
