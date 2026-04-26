@@ -15,6 +15,8 @@ public class SearchRequest
     public string? ErrorMessage { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? CompletedAt { get; set; }
+    public string? ProcessingInstanceId { get; set; }
+    public DateTime? LeaseExpiresAt { get; set; }
     public string DocumentType { get; set; } = "searchrequest";
 }
 
