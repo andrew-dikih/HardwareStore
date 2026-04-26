@@ -12,6 +12,7 @@ jobs:
   setup-repository:
     name: Configure Branches and Protection Rules
     runs-on: ubuntu-latest
+    permissions: {}
     if: ${{ github.event.inputs.confirm == 'yes' }}
     steps:
       - name: Checkout
