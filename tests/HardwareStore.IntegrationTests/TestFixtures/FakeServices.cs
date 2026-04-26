@@ -31,3 +31,9 @@ public class FakeNaturalLanguageService : INaturalLanguageService
         return Task.FromResult(result);
     }
 }
+
+public class NoOpSearchStatusNotifier : ISearchStatusNotifier
+{
+    public Task NotifyStatusChangedAsync(string searchRequestId, string status, string? reportId = null, string? errorMessage = null)
+        => Task.CompletedTask;
+}

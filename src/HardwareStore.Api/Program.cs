@@ -1,3 +1,5 @@
+using HardwareStore.Api.Hubs;
+using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Services;
 using HardwareStore.Infrastructure;
 using HardwareStore.Infrastructure.CosmosDb;
@@ -18,6 +20,10 @@ builder.Services.Configure<NaturalLanguageSettings>(builder.Configuration.GetSec
 // Infrastructure
 builder.Services.AddInfrastructure();
 
+// SignalR – override the no-op notifier with the real SignalR implementation
+builder.Services.AddSignalR();
+builder.Services.AddScoped<ISearchStatusNotifier, SignalRSearchStatusNotifier>();
+
 // Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-change-in-production-min-32-chars";
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -33,6 +39,20 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"] ?? "HardwareStoreUsers",
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
+        };
+        // Allow JWT to be passed via the query string for WebSocket (SignalR) connections
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
         };
     });
 
@@ -119,6 +139,7 @@ app.UseCors();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<SearchStatusHub>("/hubs/search-status");
 
 // SPA fallback for React frontend (static files served from wwwroot in production)
 app.UseStaticFiles();

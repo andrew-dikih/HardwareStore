@@ -35,6 +35,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IReportRepository>();
             services.RemoveAll<IEmailService>();
             services.RemoveAll<INaturalLanguageService>();
+            services.RemoveAll<ISearchStatusNotifier>();
 
             services.AddSingleton<IUserRepository>(UserRepository);
             services.AddSingleton<IRetailerRepository>(RetailerRepository);
@@ -42,6 +43,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton<IReportRepository>(ReportRepository);
             services.AddSingleton<IEmailService, NoOpEmailService>();
             services.AddSingleton<INaturalLanguageService, FakeNaturalLanguageService>();
+            services.AddSingleton<ISearchStatusNotifier, NoOpSearchStatusNotifier>();
         });
     }
 }

@@ -11,6 +11,7 @@ public class SearchJobServiceTests
     private readonly Mock<ISearchRepository> _searchRepo;
     private readonly Mock<IReportRepository> _reportRepo;
     private readonly Mock<IRetailerRepository> _retailerRepo;
+    private readonly Mock<ISearchStatusNotifier> _notifier;
     private readonly Mock<ILogger<SearchJobService>> _logger;
 
     public SearchJobServiceTests()
@@ -18,6 +19,7 @@ public class SearchJobServiceTests
         _searchRepo = new Mock<ISearchRepository>();
         _reportRepo = new Mock<IReportRepository>();
         _retailerRepo = new Mock<IRetailerRepository>();
+        _notifier = new Mock<ISearchStatusNotifier>();
         _logger = new Mock<ILogger<SearchJobService>>();
     }
 
@@ -28,6 +30,7 @@ public class SearchJobServiceTests
             _reportRepo.Object,
             _retailerRepo.Object,
             clients ?? Enumerable.Empty<IRetailerSearchClient>(),
+            _notifier.Object,
             _logger.Object);
     }
 
@@ -112,6 +115,7 @@ public class SearchJobServiceTests
         Assert.Equal(SearchStatus.Completed, request.Status);
         Assert.Equal("rpt1", request.ReportId);
         Assert.NotNull(request.CompletedAt);
+        _notifier.Verify(n => n.NotifyStatusChangedAsync("req1", SearchStatus.Completed.ToString(), "rpt1", null), Times.Once);
     }
 
     // ─── ProcessSearchAsync – only selected products are processed ─────────
@@ -190,6 +194,7 @@ public class SearchJobServiceTests
 
         Assert.Equal(SearchStatus.Failed, request.Status);
         Assert.Equal("cosmos offline", request.ErrorMessage);
+        _notifier.Verify(n => n.NotifyStatusChangedAsync("req1", SearchStatus.Failed.ToString(), null, "cosmos offline"), Times.Once);
     }
 
     // ─── ProcessSearchAsync – retailer totals and recommendation ──────────
