@@ -109,6 +109,7 @@ catch (Exception ex)
 
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -158,3 +159,5 @@ static async Task SeedRetailersAsync(IServiceProvider services)
         });
     }
 }
+
+public partial class Program { }
