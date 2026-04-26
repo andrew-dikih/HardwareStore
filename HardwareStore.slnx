@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/HardwareStore.Api/HardwareStore.Api.csproj" />
+    <Project Path="src/HardwareStore.Core/HardwareStore.Core.csproj" />
+    <Project Path="src/HardwareStore.Infrastructure/HardwareStore.Infrastructure.csproj" />
+  </Folder>
+</Solution>
