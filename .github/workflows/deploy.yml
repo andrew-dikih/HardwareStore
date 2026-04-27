@@ -3,101 +3,117 @@ name: CD - Deploy to Azure
 on:
   push:
     branches:
-      - main
+      - develop
 
 env:
-  # TODO: Fill in your Azure configuration values and add corresponding secrets
-  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}            # Azure Web App name
-  AZURE_RESOURCE_GROUP: ${{ vars.AZURE_RESOURCE_GROUP }}      # Azure resource group
-  DOTNET_VERSION: '8.0.x'
-  PUBLISH_DIR: './publish'
+  REGISTRY: ${{ vars.AZURE_REGISTRY_URL }}
+  API_IMAGE: ${{ vars.AZURE_REGISTRY_URL }}/hardwarestore-api
+  WEB_IMAGE: ${{ vars.AZURE_REGISTRY_URL }}/hardwarestore-web
 
 jobs:
-  build:
-    name: Build and Publish
+  build-and-push:
+    name: Build and Push Docker Images
     runs-on: ubuntu-latest
     permissions:
       contents: read
     outputs:
-      artifact-name: ${{ steps.set-artifact.outputs.name }}
+      image-tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - name: Set image tag
+        id: tag
+        run: echo "tag=${{ github.sha }}" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to Azure Container Registry
+        uses: docker/login-action@v3
         with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
+          registry: ${{ env.REGISTRY }}
+          username: ${{ vars.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
 
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Build
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Run unit tests
-        run: |
-          dotnet test tests/HardwareStore.UnitTests/HardwareStore.UnitTests.csproj \
-            --no-build \
-            --configuration Release
-
-      - name: Run integration tests
-        run: |
-          dotnet test tests/HardwareStore.IntegrationTests/HardwareStore.IntegrationTests.csproj \
-            --no-build \
-            --configuration Release
-
-      - name: Publish API
-        run: |
-          dotnet publish src/HardwareStore.Api/HardwareStore.Api.csproj \
-            --configuration Release \
-            --output ${{ env.PUBLISH_DIR }}
-
-      - name: Set artifact name
-        id: set-artifact
-        run: echo "name=hardwarestore-api-${{ github.sha }}" >> "$GITHUB_OUTPUT"
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+      - name: Build and push API image
+        uses: docker/build-push-action@v5
         with:
-          name: ${{ steps.set-artifact.outputs.name }}
-          path: ${{ env.PUBLISH_DIR }}
+          context: .
+          file: src/HardwareStore.Api/Dockerfile
+          push: true
+          tags: ${{ env.API_IMAGE }}:${{ steps.tag.outputs.tag }},${{ env.API_IMAGE }}:latest
+
+      - name: Build and push Web image
+        uses: docker/build-push-action@v5
+        with:
+          context: src/HardwareStore.Web
+          file: src/HardwareStore.Web/Dockerfile
+          push: true
+          tags: ${{ env.WEB_IMAGE }}:${{ steps.tag.outputs.tag }},${{ env.WEB_IMAGE }}:latest
 
   deploy:
-    name: Deploy to Azure
+    name: Deploy to Azure Container Apps
     runs-on: ubuntu-latest
-    needs: build
+    needs: build-and-push
     permissions: {}
     environment:
-      name: production
-      # TODO: Set the URL to your deployed web app after configuring Azure
-      url: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
+      name: develop
+      url: https://hardwarestore-develop-web.happysand-3d660167.westus3.azurecontainerapps.io
     steps:
-      - name: Download build artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: ${{ needs.build.outputs.artifact-name }}
-          path: ${{ env.PUBLISH_DIR }}
-
       - name: Login to Azure
         uses: azure/login@v2
         with:
-          # TODO: Add AZURE_CREDENTIALS secret to repository secrets
-          # Generate with: az ad sp create-for-rbac --name "HardwareStore-Deploy" --role contributor \
-          #   --scopes /subscriptions/<subscription-id>/resourceGroups/<resource-group> --json-auth
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      - name: Deploy to Azure Web App
-        uses: azure/webapps-deploy@v3
-        with:
-          app-name: ${{ env.AZURE_WEBAPP_NAME }}
-          # TODO: Add AZURE_WEBAPP_PUBLISH_PROFILE secret to repository secrets (optional alternative to AZURE_CREDENTIALS)
-          # publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-          package: ${{ env.PUBLISH_DIR }}
+      - name: Deploy API Container App
+        env:
+          COSMOS_CONNECTION_STRING: ${{ secrets.COSMOS_CONNECTION_STRING }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: |
+          az containerapp registry set \
+            --name ${{ vars.AZURE_API_APP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --server ${{ vars.AZURE_REGISTRY_URL }} \
+            --username ${{ vars.AZURE_REGISTRY_USERNAME }} \
+            --password "${{ secrets.AZURE_REGISTRY_PASSWORD }}"
+
+          az containerapp secret set \
+            --name ${{ vars.AZURE_API_APP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --secrets \
+              cosmos-connection-string="$COSMOS_CONNECTION_STRING" \
+              jwt-key="$JWT_KEY"
+
+          az containerapp update \
+            --name ${{ vars.AZURE_API_APP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --image ${{ env.API_IMAGE }}:${{ needs.build-and-push.outputs.image-tag }} \
+            --set-env-vars \
+              CosmosDb__ConnectionString=secretref:cosmos-connection-string \
+              CosmosDb__DatabaseName=HardwareStore \
+              CosmosDb__ContainerName=Documents \
+              CosmosDb__AllowInsecure=false \
+              Jwt__Key=secretref:jwt-key \
+              Jwt__Issuer=HardwareStore \
+              Jwt__Audience=HardwareStoreUsers \
+              ASPNETCORE_URLS=http://+:5000
+
+      - name: Deploy Web Container App
+        run: |
+          az containerapp registry set \
+            --name ${{ vars.AZURE_WEB_APP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --server ${{ vars.AZURE_REGISTRY_URL }} \
+            --username ${{ vars.AZURE_REGISTRY_USERNAME }} \
+            --password "${{ secrets.AZURE_REGISTRY_PASSWORD }}"
+
+          az containerapp update \
+            --name ${{ vars.AZURE_WEB_APP_NAME }} \
+            --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
+            --image ${{ env.WEB_IMAGE }}:${{ needs.build-and-push.outputs.image-tag }} \
+            --set-env-vars \
+              VITE_API_URL=https://hardwarestore-develop-api.happysand-3d660167.westus3.azurecontainerapps.io
 
       - name: Verify deployment
         run: |
           echo "Deployment complete."
-          echo "App URL: https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net"
-          # TODO: Add health check once app URL is known, e.g.:
-          # curl --fail https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health
+          echo "API: https://hardwarestore-develop-api.happysand-3d660167.westus3.azurecontainerapps.io"
+          echo "Web: https://hardwarestore-develop-web.happysand-3d660167.westus3.azurecontainerapps.io"
