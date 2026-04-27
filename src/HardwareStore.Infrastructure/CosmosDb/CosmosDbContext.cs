@@ -11,13 +11,24 @@ public class CosmosDbContext
     public CosmosDbContext(IOptions<CosmosDbSettings> settings)
     {
         var opts = settings.Value;
-        _client = new CosmosClient(opts.ConnectionString, new CosmosClientOptions
+        var clientOptions = new CosmosClientOptions
         {
             SerializerOptions = new CosmosSerializationOptions
             {
                 PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
             }
-        });
+        };
+        if (opts.AllowInsecure)
+        {
+            clientOptions.HttpClientFactory = () => new System.Net.Http.HttpClient(
+                new System.Net.Http.HttpClientHandler
+                {
+                    ServerCertificateCustomValidationCallback =
+                        System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
+                }, disposeHandler: false);
+            clientOptions.ConnectionMode = ConnectionMode.Gateway;
+        }
+        _client = new CosmosClient(opts.ConnectionString, clientOptions);
         _databaseName = opts.DatabaseName;
         _containerName = opts.ContainerName;
     }
