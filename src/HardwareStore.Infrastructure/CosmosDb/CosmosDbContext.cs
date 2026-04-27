@@ -1,7 +1,9 @@
 namespace HardwareStore.Infrastructure.CosmosDb;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Options;
 
+[ExcludeFromCodeCoverage]
 public class CosmosDbContext
 {
     private readonly CosmosClient _client;

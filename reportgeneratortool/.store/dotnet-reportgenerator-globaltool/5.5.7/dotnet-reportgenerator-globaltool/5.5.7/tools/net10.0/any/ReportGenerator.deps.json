@@ -1,0 +1,296 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v10.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v10.0": {
+      "ReportGenerator/5.5.7": {
+        "dependencies": {
+          "ReportGenerator.Core": "5.5.7",
+          "ReportGenerator.DotnetCorePluginLoader": "5.5.7"
+        },
+        "runtime": {
+          "ReportGenerator.dll": {}
+        }
+      },
+      "DotNetConfig/1.2.0": {
+        "runtime": {
+          "lib/netstandard2.0/DotNetConfig.dll": {
+            "assemblyVersion": "1.2.0.0",
+            "fileVersion": "1.2.0.0"
+          }
+        }
+      },
+      "McMaster.NETCore.Plugins/2.0.0": {
+        "runtime": {
+          "lib/net8.0/McMaster.NETCore.Plugins.dll": {
+            "assemblyVersion": "2.0.0.0",
+            "fileVersion": "2.0.0.0"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.7",
+          "Microsoft.Extensions.Primitives": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Abstractions/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Binder/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "10.0.7",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.Binder.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.CommandLine/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "10.0.7",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.CommandLine.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.FileExtensions/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "10.0.7",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.7",
+          "Microsoft.Extensions.FileProviders.Abstractions": "10.0.7",
+          "Microsoft.Extensions.FileProviders.Physical": "10.0.7",
+          "Microsoft.Extensions.Primitives": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.FileExtensions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Configuration.Json/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Configuration": "10.0.7",
+          "Microsoft.Extensions.Configuration.Abstractions": "10.0.7",
+          "Microsoft.Extensions.Configuration.FileExtensions": "10.0.7",
+          "Microsoft.Extensions.FileProviders.Abstractions": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Configuration.Json.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Abstractions/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.Primitives": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.FileProviders.Abstractions.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileProviders.Physical/10.0.7": {
+        "dependencies": {
+          "Microsoft.Extensions.FileProviders.Abstractions": "10.0.7",
+          "Microsoft.Extensions.FileSystemGlobbing": "10.0.7",
+          "Microsoft.Extensions.Primitives": "10.0.7"
+        },
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.FileProviders.Physical.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.FileSystemGlobbing/10.0.7": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.FileSystemGlobbing.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.ObjectPool/10.0.7": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.ObjectPool.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "Microsoft.Extensions.Primitives/10.0.7": {
+        "runtime": {
+          "lib/net10.0/Microsoft.Extensions.Primitives.dll": {
+            "assemblyVersion": "10.0.0.0",
+            "fileVersion": "10.0.726.21808"
+          }
+        }
+      },
+      "ReportGenerator.Core/5.5.7": {
+        "dependencies": {
+          "DotNetConfig": "1.2.0",
+          "Microsoft.Extensions.Configuration": "10.0.7",
+          "Microsoft.Extensions.Configuration.Binder": "10.0.7",
+          "Microsoft.Extensions.Configuration.CommandLine": "10.0.7",
+          "Microsoft.Extensions.Configuration.Json": "10.0.7",
+          "Microsoft.Extensions.ObjectPool": "10.0.7"
+        },
+        "runtime": {
+          "ReportGenerator.Core.dll": {
+            "assemblyVersion": "5.5.7.0",
+            "fileVersion": "5.5.7.0"
+          }
+        }
+      },
+      "ReportGenerator.DotnetCorePluginLoader/5.5.7": {
+        "dependencies": {
+          "McMaster.NETCore.Plugins": "2.0.0",
+          "ReportGenerator.Core": "5.5.7"
+        },
+        "runtime": {
+          "ReportGenerator.DotnetCorePluginLoader.dll": {
+            "assemblyVersion": "5.5.7.0",
+            "fileVersion": "5.5.7.0"
+          }
+        }
+      }
+    }
+  },
+  "libraries": {
+    "ReportGenerator/5.5.7": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "DotNetConfig/1.2.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-eK8k2ZN9/+kfBJmGkY6UvP7za6LL11KmHEPQhqrYDYYpFtLlgguIkD3YLW0l0COIt5ys57y7Vk18gCiwuG0XFA==",
+      "path": "dotnetconfig/1.2.0",
+      "hashPath": "dotnetconfig.1.2.0.nupkg.sha512"
+    },
+    "McMaster.NETCore.Plugins/2.0.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-pmmrI3qPE53xEJEcg575jQeDNPzMWfNJO8/SASlB9PLPrGVrsyVNFRrvfo+3BzcbQxfUBF1//gTOiJ82dOTlTw==",
+      "path": "mcmaster.netcore.plugins/2.0.0",
+      "hashPath": "mcmaster.netcore.plugins.2.0.0.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-wZbGh7J8R1vXN525O6d8dlcDTxhRTnd5MyW4LdfP5S0tSnTwTCseYSrq6g0Mxh7W9xn8P/2xPuf0D/m6k2dy2w==",
+      "path": "microsoft.extensions.configuration/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Abstractions/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-t56nEgvECcyLPojZIUFWJknQQDAbgfTf9J+QMYJE1YYvVgz69vN6B/AKL8Grvj3Lcnp8kTpNqwmwFhb3YLJmtQ==",
+      "path": "microsoft.extensions.configuration.abstractions/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.abstractions.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Binder/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-8bS1qIaRivny+WX+49pmeJ6iAylbtX8C0DLEcCQWZjdxQvLqaMssXiGD9P/6pYElrHbK5/nAHmjbQ8STqdMYeg==",
+      "path": "microsoft.extensions.configuration.binder/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.binder.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.CommandLine/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-3lNjglxfFxOzI9zG+3HSg/YSGqo//8Fqw6u6iuIamZb4JCorbA3JLaeWOpfKTAPi2UJwaispOXWx14dUqcGz4A==",
+      "path": "microsoft.extensions.configuration.commandline/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.commandline.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.FileExtensions/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-qbZLvLsoTdArSloEnSxs21P781YUmwVmHc5NJPQD/ezAreQ7884z+6QfAZVKi86WAZtzx83jK2uC4itxOM44gQ==",
+      "path": "microsoft.extensions.configuration.fileextensions/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.fileextensions.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Configuration.Json/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-64dimvyyKk0dbUbrLg/YCv4ugJ4sVz2aXLwfvZwR1EC4tJqW9ru/oVRcXwoJRa2lQGXtYtlpk4maWOeIb48tQw==",
+      "path": "microsoft.extensions.configuration.json/10.0.7",
+      "hashPath": "microsoft.extensions.configuration.json.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Abstractions/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-teioDgVpi8L186wUfrXQV1YuBt6lCSPmFZiMZo53+FZxHFjOV+f4GXo4LXgJ273Mku9//AdXWVjk9J7eJP6inw==",
+      "path": "microsoft.extensions.fileproviders.abstractions/10.0.7",
+      "hashPath": "microsoft.extensions.fileproviders.abstractions.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileProviders.Physical/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-zhgWg/i0ECj5v0jLFBSZHplvc5ygCI91DR4nne+BP4XAKF5ycz0pEKnFiTw8C1jCABJEZsnBZh6pXAvn71kFmw==",
+      "path": "microsoft.extensions.fileproviders.physical/10.0.7",
+      "hashPath": "microsoft.extensions.fileproviders.physical.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.FileSystemGlobbing/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-NTUspqB+vH9g4wAD6KPOBx01xqYuKXR/cHXm449zpbq1GqfjdAxBmg7eJXrNsPw7SKwIdT2cJ05GxYVvc+lvsA==",
+      "path": "microsoft.extensions.filesystemglobbing/10.0.7",
+      "hashPath": "microsoft.extensions.filesystemglobbing.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.ObjectPool/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-flWxDEhfc7fueGP+mvNp8Avrm5YcZVfcpyI96MkJEnGu+1X/eH8XcHfx6deBAdCU3ZPpmQ7AVp/9t4aikKP07w==",
+      "path": "microsoft.extensions.objectpool/10.0.7",
+      "hashPath": "microsoft.extensions.objectpool.10.0.7.nupkg.sha512"
+    },
+    "Microsoft.Extensions.Primitives/10.0.7": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-D5M0Jr551iTgwkZMN9rm0pSkgNLj5quUWQUmQPMZh7k/bnvZTnXRGfE2KuvXf1EEjt/ofD9yw9IumpgdP9QCnw==",
+      "path": "microsoft.extensions.primitives/10.0.7",
+      "hashPath": "microsoft.extensions.primitives.10.0.7.nupkg.sha512"
+    },
+    "ReportGenerator.Core/5.5.7": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "ReportGenerator.DotnetCorePluginLoader/5.5.7": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
