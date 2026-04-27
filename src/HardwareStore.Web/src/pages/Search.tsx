@@ -7,6 +7,28 @@ import type { AxiosError } from 'axios';
 
 type Step = 'input' | 'review';
 
+const CATEGORY_ICONS: Array<{ keywords: string[]; icon: string }> = [
+  { keywords: ['lumber', 'wood'], icon: '🪵' },
+  { keywords: ['paint'], icon: '🎨' },
+  { keywords: ['electric', 'wire', 'lighting'], icon: '💡' },
+  { keywords: ['plumb', 'pipe', 'faucet'], icon: '🚿' },
+  { keywords: ['fastener', 'screw', 'nail', 'bolt'], icon: '🔩' },
+  { keywords: ['tool', 'drill', 'saw'], icon: '🔧' },
+  { keywords: ['floor', 'tile', 'carpet'], icon: '🏠' },
+  { keywords: ['concrete', 'cement', 'mortar'], icon: '🧱' },
+  { keywords: ['insulation'], icon: '🧰' },
+  { keywords: ['fence', 'gate'], icon: '🚧' },
+  { keywords: ['adhesive', 'glue', 'tape', 'caulk'], icon: '🗜️' },
+  { keywords: ['landscape', 'garden', 'soil'], icon: '🌱' },
+  { keywords: ['safety', 'protective'], icon: '🦺' },
+];
+
+function getCategoryIcon(category?: string): string {
+  const lower = (category ?? '').toLowerCase();
+  const match = CATEGORY_ICONS.find(({ keywords }) => keywords.some((kw) => lower.includes(kw)));
+  return match?.icon ?? '🔨';
+}
+
 export default function Search() {
   const navigate = useNavigate();
   const [step, setStep] = useState<Step>('input');
@@ -185,20 +207,53 @@ export default function Search() {
               type="checkbox"
               checked={p.isSelected}
               onChange={() => toggleProduct(p.id)}
-              className="mt-1 h-4 w-4 text-orange-600 rounded"
+              className="mt-1 h-4 w-4 text-orange-600 rounded shrink-0"
             />
-            <div>
-              <p className="text-sm font-medium text-gray-800 group-hover:text-orange-600 transition">
-                {p.name}
-              </p>
-              {p.searchTerm !== p.name && (
-                <p className="text-xs text-gray-400">Search term: {p.searchTerm}</p>
-              )}
-              {p.quantity && p.unit && (
-                <p className="text-xs text-gray-400">
-                  {p.quantity} {p.unit}
-                </p>
-              )}
+            <div className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
+              <div className="flex items-start gap-3">
+                <div className="shrink-0 w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-xl">
+                  {getCategoryIcon(p.category)}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-gray-800 group-hover:text-orange-600 transition">
+                    {p.name}
+                  </p>
+                  {p.category && (
+                    <span className="inline-block text-xs text-orange-600 bg-orange-100 rounded-full px-2 py-0.5 mt-0.5">
+                      {p.category}
+                    </span>
+                  )}
+                  {p.description && (
+                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{p.description}</p>
+                  )}
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                    {p.quantity != null && p.unit && (
+                      <span className="text-xs text-gray-500">
+                        <span className="font-medium text-gray-700">Qty:</span> {p.quantity} {p.unit}
+                      </span>
+                    )}
+                    {p.dimensions && (
+                      <span className="text-xs text-gray-500">
+                        <span className="font-medium text-gray-700">Size:</span> {p.dimensions}
+                      </span>
+                    )}
+                    {p.searchTerm !== p.name && (
+                      <span className="text-xs text-gray-400">
+                        <span className="font-medium">Term:</span> {p.searchTerm}
+                      </span>
+                    )}
+                  </div>
+                  {p.specifications && Object.keys(p.specifications).length > 0 && (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {Object.entries(p.specifications).map(([key, value]) => (
+                        <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
+                          <span className="font-medium">{key}:</span> {value}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           </label>
         ))}
@@ -215,15 +270,48 @@ export default function Search() {
                 type="checkbox"
                 checked={p.isSelected}
                 onChange={() => toggleAdditional(p.id)}
-                className="mt-1 h-4 w-4 text-orange-600 rounded"
+                className="mt-1 h-4 w-4 text-orange-600 rounded shrink-0"
               />
-              <div>
-                <p className="text-sm font-medium text-gray-800 group-hover:text-orange-600 transition">
-                  {p.name}
-                </p>
-                {p.category && (
-                  <p className="text-xs text-gray-400">{p.category}</p>
-                )}
+              <div className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
+                <div className="flex items-start gap-3">
+                  <div className="shrink-0 w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xl">
+                    {getCategoryIcon(p.category)}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-semibold text-gray-800 group-hover:text-orange-600 transition">
+                      {p.name}
+                    </p>
+                    {p.category && (
+                      <span className="inline-block text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 mt-0.5">
+                        {p.category}
+                      </span>
+                    )}
+                    {p.description && (
+                      <p className="text-xs text-gray-500 mt-1 leading-relaxed">{p.description}</p>
+                    )}
+                    <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                      {p.quantity != null && p.unit && (
+                        <span className="text-xs text-gray-500">
+                          <span className="font-medium text-gray-700">Qty:</span> {p.quantity} {p.unit}
+                        </span>
+                      )}
+                      {p.dimensions && (
+                        <span className="text-xs text-gray-500">
+                          <span className="font-medium text-gray-700">Size:</span> {p.dimensions}
+                        </span>
+                      )}
+                    </div>
+                    {p.specifications && Object.keys(p.specifications).length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-2">
+                        {Object.entries(p.specifications).map(([key, value]) => (
+                          <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
+                            <span className="font-medium">{key}:</span> {value}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </label>
           ))}

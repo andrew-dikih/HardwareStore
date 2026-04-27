@@ -30,4 +30,7 @@ public class ProductSelection
     public bool IsAdditional { get; set; } = false;
     public string? Unit { get; set; }
     public double? Quantity { get; set; }
+    public string? Description { get; set; }
+    public Dictionary<string, string>? Specifications { get; set; }
+    public string? Dimensions { get; set; }
 }

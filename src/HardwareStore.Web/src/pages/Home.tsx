@@ -111,7 +111,7 @@ export default function Home() {
 
         {groups.map((group) => (
           <div key={group.searchTerm} className="bg-white rounded-2xl shadow-md overflow-hidden">
-            <div className="bg-gray-50 px-5 py-3 border-b border-gray-200">
+            <div className="bg-gray-50 px-5 py-3 border-b border-gray-200 flex items-center gap-2">
               <p className="font-semibold text-gray-800">{group.displayName}</p>
               {group.isAdditional && (
                 <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Add-on</span>
@@ -122,51 +122,73 @@ export default function Home() {
               <p className="px-5 py-4 text-sm text-gray-400 italic">No results found for this item.</p>
             ) : (
               <div className="divide-y divide-gray-100">
-                {group.candidates.map((candidate) => (
-                  <label
-                    key={candidate.id}
-                    className={`flex items-start gap-3 px-5 py-4 cursor-pointer transition ${
-                      selected.has(candidate.id) ? 'bg-orange-50' : 'hover:bg-gray-50'
-                    }`}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={selected.has(candidate.id)}
-                      onChange={() => toggleCandidate(candidate.id)}
-                      className="mt-1 h-4 w-4 text-orange-600 rounded flex-shrink-0"
-                    />
-                    <div className="flex-1 min-w-0 space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-sm font-medium text-gray-900">{candidate.displayName}</span>
-                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${confidenceStyle[candidate.confidence]}`}>
-                          {confidenceLabel[candidate.confidence]}
-                        </span>
+                {group.candidates.map((candidate) => {
+                  const thumbnail = candidate.items.find((i) => i.imageUrl)?.imageUrl;
+                  return (
+                    <label
+                      key={candidate.id}
+                      className={`flex items-start gap-3 px-5 py-4 cursor-pointer transition ${
+                        selected.has(candidate.id) ? 'bg-orange-50' : 'hover:bg-gray-50'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selected.has(candidate.id)}
+                        onChange={() => toggleCandidate(candidate.id)}
+                        className="mt-1 h-4 w-4 text-orange-600 rounded flex-shrink-0"
+                      />
+                      {thumbnail && (
+                        <img
+                          src={thumbnail}
+                          alt={candidate.displayName}
+                          className="w-16 h-16 object-contain rounded-lg border border-gray-100 flex-shrink-0 bg-white"
+                        />
+                      )}
+                      <div className="flex-1 min-w-0 space-y-1.5">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-gray-900">{candidate.displayName}</span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${confidenceStyle[candidate.confidence]}`}>
+                            {confidenceLabel[candidate.confidence]}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {candidate.items.map((item) => (
+                            <div key={item.retailerId} className="flex items-center gap-2">
+                              {item.imageUrl && !thumbnail && (
+                                <img
+                                  src={item.imageUrl}
+                                  alt={item.productTitle}
+                                  className="w-8 h-8 object-contain rounded border border-gray-100 bg-white flex-shrink-0"
+                                />
+                              )}
+                              <div className="min-w-0">
+                                <span className="text-xs font-medium text-gray-500">{item.retailerName}: </span>
+                                <span className="text-xs text-gray-900 font-semibold">{item.priceDisplay || `$${item.price.toFixed(2)}`}</span>
+                                {item.productTitle && item.productTitle !== candidate.displayName && (
+                                  <p className="text-xs text-gray-400 truncate" title={item.productTitle}>{item.productTitle}</p>
+                                )}
+                                {item.productUrl && (
+                                  <a
+                                    href={item.productUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="text-xs text-orange-600 hover:underline"
+                                  >
+                                    View →
+                                  </a>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                          {candidate.items.length === 1 && (
+                            <span className="text-xs text-gray-400 italic">Not found at other retailers</span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex flex-wrap gap-3">
-                        {candidate.items.map((item) => (
-                          <div key={item.retailerId} className="text-xs text-gray-600">
-                            <span className="font-medium">{item.retailerName}:</span>{' '}
-                            <span className="text-gray-900 font-semibold">{item.priceDisplay || `$${item.price.toFixed(2)}`}</span>
-                            {item.productUrl && (
-                              <a
-                                href={item.productUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                onClick={(e) => e.stopPropagation()}
-                                className="ml-1 text-orange-600 hover:underline"
-                              >
-                                View →
-                              </a>
-                            )}
-                          </div>
-                        ))}
-                        {candidate.items.length === 1 && (
-                          <span className="text-xs text-gray-400 italic">Not found at other retailers</span>
-                        )}
-                      </div>
-                    </div>
-                  </label>
-                ))}
+                    </label>
+                  );
+                })}
               </div>
             )}
           </div>

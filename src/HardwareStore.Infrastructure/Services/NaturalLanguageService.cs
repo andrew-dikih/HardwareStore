@@ -67,10 +67,30 @@ Always respond with valid JSON in this exact format:
 {
   ""summary"": ""brief description of what was requested"",
   ""products"": [
-    {""name"": ""product display name"", ""searchTerm"": ""search term for retailer"", ""category"": ""category"", ""unit"": ""each|box|bag|roll"", ""quantity"": 1.0, ""isSelected"": true}
+    {
+      ""name"": ""product display name"",
+      ""searchTerm"": ""search term for retailer"",
+      ""category"": ""category"",
+      ""unit"": ""each|box|bag|roll"",
+      ""quantity"": 1.0,
+      ""isSelected"": true,
+      ""description"": ""one-sentence description of the product and its primary use"",
+      ""specifications"": {""key spec"": ""value""},
+      ""dimensions"": ""typical size or dimension, e.g. 2x4x8 ft or 1/2 in x 100 ft""
+    }
   ],
   ""additionalItems"": [
-    {""name"": ""related product"", ""searchTerm"": ""search term"", ""category"": ""category"", ""unit"": ""each"", ""quantity"": 1.0, ""isSelected"": false}
+    {
+      ""name"": ""related product"",
+      ""searchTerm"": ""search term"",
+      ""category"": ""category"",
+      ""unit"": ""each"",
+      ""quantity"": 1.0,
+      ""isSelected"": false,
+      ""description"": ""one-sentence description"",
+      ""specifications"": {""key spec"": ""value""},
+      ""dimensions"": ""typical size""
+    }
   ]
 }";
 
@@ -83,7 +103,7 @@ Always respond with valid JSON in this exact format:
                 new { role = "user", content = $"Parse this hardware product request: {query}" }
             },
             temperature = 0.1,
-            max_tokens = 1000
+            max_tokens = 2000
         };
 
         _httpClient.DefaultRequestHeaders.Authorization =
@@ -135,7 +155,12 @@ Always respond with valid JSON in this exact format:
                         Unit = p.TryGetProperty("unit", out var u) ? u.GetString() : null,
                         Quantity = p.TryGetProperty("quantity", out var q) ? q.GetDouble() : null,
                         IsSelected = !p.TryGetProperty("isSelected", out var sel) || sel.GetBoolean(),
-                        IsAdditional = false
+                        IsAdditional = false,
+                        Description = p.TryGetProperty("description", out var desc) ? desc.GetString() : null,
+                        Specifications = p.TryGetProperty("specifications", out var specs) && specs.ValueKind == JsonValueKind.Object
+                            ? specs.EnumerateObject().ToDictionary(kv => kv.Name, kv => kv.Value.GetString() ?? "")
+                            : null,
+                        Dimensions = p.TryGetProperty("dimensions", out var dims) ? dims.GetString() : null
                     });
                 }
             }
@@ -152,7 +177,12 @@ Always respond with valid JSON in this exact format:
                         Unit = p.TryGetProperty("unit", out var u) ? u.GetString() : null,
                         Quantity = p.TryGetProperty("quantity", out var q) ? q.GetDouble() : null,
                         IsSelected = false,
-                        IsAdditional = true
+                        IsAdditional = true,
+                        Description = p.TryGetProperty("description", out var desc) ? desc.GetString() : null,
+                        Specifications = p.TryGetProperty("specifications", out var specs) && specs.ValueKind == JsonValueKind.Object
+                            ? specs.EnumerateObject().ToDictionary(kv => kv.Name, kv => kv.Value.GetString() ?? "")
+                            : null,
+                        Dimensions = p.TryGetProperty("dimensions", out var dims) ? dims.GetString() : null
                     });
                 }
             }
