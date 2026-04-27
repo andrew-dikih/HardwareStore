@@ -24,7 +24,39 @@ src/
 
 ## Getting Started
 
-### Prerequisites
+### Option A – Docker Compose (recommended)
+
+The fastest way to start everything locally. You only need [Docker](https://docs.docker.com/get-docker/) installed.
+
+```bash
+# 1. Copy the environment template and fill in your secrets
+cp .env.example .env
+# Edit .env and set OPENAI_API_KEY (and optionally SMTP / Facebook values)
+
+# 2. Build and start all services
+docker compose up --build
+```
+
+| Service | URL |
+|---------|-----|
+| React UI | <http://localhost:5173> |
+| API | <http://localhost:5000> |
+| Swagger | <http://localhost:5000/swagger> |
+| CosmosDB Emulator | <https://localhost:8081/_explorer> (accept the self-signed cert) |
+
+> **First start**: The CosmosDB emulator takes ~60 s to become ready. The API waits for it automatically. If you see `Failed to initialize CosmosDB` in the logs, wait a moment and retry your request.
+
+To stop everything:
+
+```bash
+docker compose down
+```
+
+---
+
+### Option B – Manual Setup
+
+#### Prerequisites
 
 | Tool | Version | Notes |
 |------|---------|-------|

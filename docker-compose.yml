@@ -1,0 +1,62 @@
+services:
+
+  # ── Azure Cosmos DB Emulator ──────────────────────────────────────────────
+  cosmosdb:
+    image: mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator:latest
+    container_name: hardwarestore-cosmosdb
+    environment:
+      AZURE_COSMOS_EMULATOR_PARTITION_COUNT: 10
+      AZURE_COSMOS_EMULATOR_ENABLE_DATA_PERSISTENCE: "false"
+    ports:
+      - "8081:8081"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "-k", "https://localhost:8081/_explorer/emulator.pem"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+      start_period: 60s
+
+  # ── ASP.NET Core API ──────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: src/HardwareStore.Api/Dockerfile
+    container_name: hardwarestore-api
+    depends_on:
+      cosmosdb:
+        condition: service_healthy
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      CosmosDb__ConnectionString: "AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
+      CosmosDb__AllowInsecure: "true"
+      Jwt__Key: "local-dev-secret-change-in-production-min-32-chars"
+      # ⚠️  Override Jwt__Key with a strong secret in any non-local environment.
+      # Optional – fill in your own values in .env (copy from .env.example)
+      NaturalLanguage__OpenAiApiKey: ${OPENAI_API_KEY:-}
+      Email__SmtpHost: ${SMTP_HOST:-}
+      Email__SmtpPort: ${SMTP_PORT:-587}
+      Email__SmtpUser: ${SMTP_USER:-}
+      Email__SmtpPassword: ${SMTP_PASSWORD:-}
+      Facebook__AppId: ${FACEBOOK_APP_ID:-}
+      Facebook__AppSecret: ${FACEBOOK_APP_SECRET:-}
+    restart: on-failure
+
+  # ── React / Vite UI ───────────────────────────────────────────────────────
+  web:
+    build:
+      context: src/HardwareStore.Web
+      dockerfile: Dockerfile
+    container_name: hardwarestore-web
+    depends_on:
+      - api
+    ports:
+      - "5173:5173"
+    environment:
+      # Proxy inside the Docker network routes to the api service
+      VITE_API_URL: http://api:5000
+    volumes:
+      # Mount source for hot-reload; skip node_modules to keep the container copy
+      - ./src/HardwareStore.Web:/app
+      - /app/node_modules
