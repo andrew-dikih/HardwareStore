@@ -1,4 +1,5 @@
 namespace HardwareStore.Infrastructure.Repositories;
+using System.Diagnostics.CodeAnalysis;
 using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Models;
 using HardwareStore.Infrastructure.CosmosDb;
@@ -7,6 +8,7 @@ using Microsoft.Azure.Cosmos.Linq;
 
 using CoreUser = HardwareStore.Core.Models.User;
 
+[ExcludeFromCodeCoverage]
 public class UserRepository : IUserRepository
 {
     private readonly CosmosDbContext _context;

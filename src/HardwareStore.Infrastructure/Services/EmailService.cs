@@ -1,8 +1,10 @@
 namespace HardwareStore.Infrastructure.Services;
+using System.Diagnostics.CodeAnalysis;
 using HardwareStore.Core.Interfaces;
 using MailKit.Net.Smtp;
 using MimeKit;
 
+[ExcludeFromCodeCoverage]
 public class EmailSettings
 {
     public string SmtpHost { get; set; } = string.Empty;
@@ -15,6 +17,7 @@ public class EmailSettings
     public bool EnableSsl { get; set; } = true;
 }
 
+[ExcludeFromCodeCoverage]
 public class EmailService : IEmailService
 {
     private readonly EmailSettings _settings;

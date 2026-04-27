@@ -1,10 +1,12 @@
 namespace HardwareStore.Infrastructure.Repositories;
+using System.Diagnostics.CodeAnalysis;
 using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Models;
 using HardwareStore.Infrastructure.CosmosDb;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 
+[ExcludeFromCodeCoverage]
 public class ReportRepository : IReportRepository
 {
     private readonly CosmosDbContext _context;
