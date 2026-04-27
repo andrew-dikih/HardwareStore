@@ -32,6 +32,7 @@ services:
       CosmosDb__ConnectionString: "AccountEndpoint=https://cosmosdb:8081/;AccountKey=C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw=="
       CosmosDb__AllowInsecure: "true"
       Jwt__Key: "local-dev-secret-change-in-production-min-32-chars"
+      # ⚠️  Override Jwt__Key with a strong secret in any non-local environment.
       # Optional – fill in your own values in .env (copy from .env.example)
       NaturalLanguage__OpenAiApiKey: ${OPENAI_API_KEY:-}
       Email__SmtpHost: ${SMTP_HOST:-}

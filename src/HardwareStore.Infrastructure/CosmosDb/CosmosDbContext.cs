@@ -25,7 +25,7 @@ public class CosmosDbContext
                 {
                     ServerCertificateCustomValidationCallback =
                         System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                }, disposeHandler: false);
+                }, disposeHandler: true);
             clientOptions.ConnectionMode = ConnectionMode.Gateway;
         }
         _client = new CosmosClient(opts.ConnectionString, clientOptions);
