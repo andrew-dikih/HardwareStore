@@ -123,7 +123,7 @@ public class SearchJobService : ISearchJobService
                     }
                 }
 
-                total.TotalPriceDisplay = $"${total.TotalPrice:F2}";
+                total.TotalPriceDisplay = total.ProductsFound > 0 ? $"${total.TotalPrice:F2}" : "N/A";
                 report.RetailerTotals[retailer.Id] = total;
             }
 

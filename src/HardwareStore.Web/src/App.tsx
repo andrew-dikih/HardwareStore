@@ -21,6 +21,7 @@ export default function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<Signup />} />
             <Route path="/status/:id" element={<SearchStatus />} />
+            <Route path="/public/report/:id" element={<ReportDetail isPublic />} />
 
             {/* Protected routes */}
             <Route element={<RequireAuth />}>

@@ -41,6 +41,12 @@ services:
       Email__SmtpPassword: ${SMTP_PASSWORD:-}
       Facebook__AppId: ${FACEBOOK_APP_ID:-}
       Facebook__AppSecret: ${FACEBOOK_APP_SECRET:-}
+      # Playwright scraping (bypasses 403/TLS fingerprinting). Mutually exclusive with UseSerpApi.
+      # RetailerClients__UsePlaywright: "false"
+      # SerpAPI integration (set UseSerpApi=true and provide your key from serpapi.com)
+      # Mutually exclusive with RetailerClients__UsePlaywright -- enable at most one.
+      SerpApi__ApiKey: ${SERPAPI_KEY:-}
+      RetailerClients__UseSerpApi: ${RETAILER_USE_SERPAPI:-false}
     restart: on-failure
 
   # ── React / Vite UI ───────────────────────────────────────────────────────

@@ -42,7 +42,7 @@ docker compose up --build
 | React UI | <http://localhost:5173> |
 | API | <http://localhost:5000> |
 | Swagger | <http://localhost:5000/swagger> |
-| CosmosDB Emulator | <https://localhost:8081/_explorer> (accept the self-signed cert) |
+| CosmosDB Emulator | <https://localhost:8081/_explorer/index.html> (accept the self-signed cert) |
 
 > **First start**: The CosmosDB emulator takes ~60 s to become ready. The API waits for it automatically. If you see `Failed to initialize CosmosDB` in the logs, wait a moment and retry your request.
 
