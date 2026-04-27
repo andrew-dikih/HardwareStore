@@ -20,7 +20,7 @@ builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("Emai
 builder.Services.Configure<NaturalLanguageSettings>(builder.Configuration.GetSection("NaturalLanguage"));
 
 // Infrastructure
-builder.Services.AddInfrastructure();
+builder.Services.AddInfrastructure(builder.Configuration);
 
 // SignalR – override the no-op notifier with the real SignalR implementation
 builder.Services.AddSignalR();

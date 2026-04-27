@@ -5,11 +5,12 @@ using HardwareStore.Infrastructure.CosmosDb;
 using HardwareStore.Infrastructure.Repositories;
 using HardwareStore.Infrastructure.RetailerClients;
 using HardwareStore.Infrastructure.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
     {
         // CosmosDB
         services.AddSingleton<CosmosDbContext>();
@@ -27,9 +28,21 @@ public static class DependencyInjection
         services.AddScoped<IRateLimitService, RateLimitService>();
         services.AddScoped<ISearchStatusNotifier, NoOpSearchStatusNotifier>();
 
-        // Retailer clients
-        services.AddScoped<IRetailerSearchClient, HomeDepotClient>();
-        services.AddScoped<IRetailerSearchClient, LowesClient>();
+        // Playwright browser service (singleton — one browser instance shared across all requests)
+        services.AddSingleton<PlaywrightBrowserService>();
+
+        // Retailer clients — feature flag selects Playwright or plain HttpClient
+        var usePlaywright = configuration.GetValue<bool>("RetailerClients:UsePlaywright", defaultValue: false);
+        if (usePlaywright)
+        {
+            services.AddScoped<IRetailerSearchClient, PlaywrightHomeDepotClient>();
+            services.AddScoped<IRetailerSearchClient, PlaywrightLowesClient>();
+        }
+        else
+        {
+            services.AddScoped<IRetailerSearchClient, HomeDepotClient>();
+            services.AddScoped<IRetailerSearchClient, LowesClient>();
+        }
 
         // Background service
         services.AddHostedService<SearchBackgroundService>();
