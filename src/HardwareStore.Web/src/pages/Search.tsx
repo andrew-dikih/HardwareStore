@@ -7,22 +7,26 @@ import type { AxiosError } from 'axios';
 
 type Step = 'input' | 'review';
 
+const CATEGORY_ICONS: Array<{ keywords: string[]; icon: string }> = [
+  { keywords: ['lumber', 'wood'], icon: '🪵' },
+  { keywords: ['paint'], icon: '🎨' },
+  { keywords: ['electric', 'wire', 'lighting'], icon: '💡' },
+  { keywords: ['plumb', 'pipe', 'faucet'], icon: '🚿' },
+  { keywords: ['fastener', 'screw', 'nail', 'bolt'], icon: '🔩' },
+  { keywords: ['tool', 'drill', 'saw'], icon: '🔧' },
+  { keywords: ['floor', 'tile', 'carpet'], icon: '🏠' },
+  { keywords: ['concrete', 'cement', 'mortar'], icon: '🧱' },
+  { keywords: ['insulation'], icon: '🧰' },
+  { keywords: ['fence', 'gate'], icon: '🚧' },
+  { keywords: ['adhesive', 'glue', 'tape', 'caulk'], icon: '🗜️' },
+  { keywords: ['landscape', 'garden', 'soil'], icon: '🌱' },
+  { keywords: ['safety', 'protective'], icon: '🦺' },
+];
+
 function getCategoryIcon(category?: string): string {
   const lower = (category ?? '').toLowerCase();
-  if (lower.includes('lumber') || lower.includes('wood')) return '🪵';
-  if (lower.includes('paint')) return '🎨';
-  if (lower.includes('electric') || lower.includes('wire') || lower.includes('lighting')) return '💡';
-  if (lower.includes('plumb') || lower.includes('pipe') || lower.includes('faucet')) return '🚿';
-  if (lower.includes('fastener') || lower.includes('screw') || lower.includes('nail') || lower.includes('bolt')) return '🔩';
-  if (lower.includes('tool') || lower.includes('drill') || lower.includes('saw')) return '🔧';
-  if (lower.includes('floor') || lower.includes('tile') || lower.includes('carpet')) return '🏠';
-  if (lower.includes('concrete') || lower.includes('cement') || lower.includes('mortar')) return '🧱';
-  if (lower.includes('insulation')) return '🧰';
-  if (lower.includes('fence') || lower.includes('gate')) return '🚧';
-  if (lower.includes('adhesive') || lower.includes('glue') || lower.includes('tape') || lower.includes('caulk')) return '🗜️';
-  if (lower.includes('landscape') || lower.includes('garden') || lower.includes('soil')) return '🌱';
-  if (lower.includes('safety') || lower.includes('protective')) return '🦺';
-  return '🔨';
+  const match = CATEGORY_ICONS.find(({ keywords }) => keywords.some((kw) => lower.includes(kw)));
+  return match?.icon ?? '🔨';
 }
 
 export default function Search() {
@@ -242,7 +246,7 @@ export default function Search() {
                   {p.specifications && Object.keys(p.specifications).length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
                       {Object.entries(p.specifications).map(([key, value]) => (
-                        <span key={key} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
+                        <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
                           <span className="font-medium">{key}:</span> {value}
                         </span>
                       ))}
@@ -300,7 +304,7 @@ export default function Search() {
                     {p.specifications && Object.keys(p.specifications).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
                         {Object.entries(p.specifications).map(([key, value]) => (
-                          <span key={key} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
+                          <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
                             <span className="font-medium">{key}:</span> {value}
                           </span>
                         ))}
