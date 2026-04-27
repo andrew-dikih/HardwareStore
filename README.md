@@ -24,16 +24,67 @@ src/
 
 ## Getting Started
 
-### Backend (ASP.NET Core)
-```bash
-cd src/HardwareStore.Api
-dotnet run
-# API available at http://localhost:5000
+### Prerequisites
+
+| Tool | Version | Notes |
+|------|---------|-------|
+| [.NET SDK](https://dotnet.microsoft.com/download) | 8.0+ | Required to build and run the API |
+| [Node.js](https://nodejs.org/) | 18+ | Required to run the React UI |
+| [Azure Cosmos DB Emulator](https://learn.microsoft.com/azure/cosmos-db/local-emulator) | Latest | For local development without a cloud account |
+| OpenAI API key | — | Used for natural-language query parsing |
+
+### 1. Configure the API
+
+Open `src/HardwareStore.Api/appsettings.Development.json` and fill in the required values:
+
+```json
+{
+  "CosmosDb": {
+    "ConnectionString": "<your CosmosDB connection string>",
+    "DatabaseName": "HardwareStore",
+    "ContainerName": "Documents"
+  },
+  "Email": {
+    "SmtpHost": "<your SMTP host>",
+    "SmtpPort": 587,
+    "SmtpUser": "<your SMTP username>",
+    "SmtpPassword": "<your SMTP password>",
+    "FromEmail": "noreply@hardwarestore.example.com",
+    "FromName": "HardwareStore",
+    "AdminEmail": "<admin email address>",
+    "EnableSsl": true
+  },
+  "NaturalLanguage": {
+    "OpenAiApiKey": "<your OpenAI API key>",
+    "OpenAiEndpoint": "https://api.openai.com/v1",
+    "ModelName": "gpt-4o-mini"
+  },
+  "Jwt": {
+    "Key": "<a random secret, at least 32 characters>",
+    "Issuer": "HardwareStore",
+    "Audience": "HardwareStoreUsers"
+  }
+}
 ```
 
-Configure `appsettings.Development.json` with your CosmosDB, email (SMTP), and OpenAI keys.
+> **Local CosmosDB emulator**: The emulator runs at `https://localhost:8081` with a well-known key. The default `appsettings.Development.json` already contains the emulator connection string, so no changes are needed for `CosmosDb` if you are using the emulator.
 
-### Frontend (React + Vite)
+> **Email**: If you do not have an SMTP server for local testing, you can leave the email fields blank. User-approval emails will fail silently, but the rest of the app will work.
+
+### 2. Run the API
+
+The Vite dev server proxies all `/api` and `/hubs` requests to `http://localhost:5000`, so the API must listen on that port:
+
+```bash
+cd src/HardwareStore.Api
+dotnet run --urls http://localhost:5000
+# Swagger UI available at http://localhost:5000/swagger
+```
+
+### 3. Run the UI
+
+In a separate terminal:
+
 ```bash
 cd src/HardwareStore.Web
 npm install
@@ -41,7 +92,9 @@ npm run dev
 # App available at http://localhost:5173
 ```
 
-The Vite dev server proxies `/api` requests to `http://localhost:5000`.
+The Vite dev server automatically proxies:
+- `/api/*` → `http://localhost:5000`
+- `/hubs/*` → `http://localhost:5000` (WebSocket)
 
 ## Branch Strategy
 
