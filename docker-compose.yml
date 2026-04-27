@@ -41,6 +41,8 @@ services:
       Email__SmtpPassword: ${SMTP_PASSWORD:-}
       Facebook__AppId: ${FACEBOOK_APP_ID:-}
       Facebook__AppSecret: ${FACEBOOK_APP_SECRET:-}
+      # Set to "true" to use Playwright-based scraping instead of raw HttpClient (bypasses 403/TLS fingerprinting)
+      # RetailerClients__UsePlaywright: "false"
     restart: on-failure
 
   # ── React / Vite UI ───────────────────────────────────────────────────────

@@ -11,7 +11,9 @@ RUN dotnet restore src/HardwareStore.Api/HardwareStore.Api.csproj
 COPY src/ src/
 RUN dotnet publish src/HardwareStore.Api/HardwareStore.Api.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Use the official Playwright .NET image as the runtime — it ships Chromium and all required system deps.
+# Switch back to mcr.microsoft.com/dotnet/aspnet:8.0 if Playwright is never enabled.
+FROM mcr.microsoft.com/playwright/dotnet:v1.44.0-jammy
 WORKDIR /app
 COPY --from=build /app/publish .
 EXPOSE 5000
