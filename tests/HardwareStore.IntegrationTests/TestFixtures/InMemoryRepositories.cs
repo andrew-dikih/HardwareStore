@@ -77,6 +77,7 @@ public class InMemoryRetailerRepository : IRetailerRepository
 public class InMemorySearchRepository : ISearchRepository
 {
     private readonly ConcurrentDictionary<string, SearchRequest> _store = new();
+    private readonly object _leaseLock = new();
 
     public Task<SearchRequest?> GetByIdAsync(string id) =>
         Task.FromResult(_store.TryGetValue(id, out var s) ? s : null);
@@ -94,6 +95,38 @@ public class InMemorySearchRepository : ISearchRepository
     {
         _store[request.Id] = request;
         return Task.FromResult(request);
+    }
+
+    public Task<List<SearchRequest>> GetPendingAsync()
+    {
+        var now = DateTime.UtcNow;
+        var results = _store.Values
+            .Where(s => s.Status == SearchStatus.Queued ||
+                        (s.Status == SearchStatus.Processing &&
+                         (s.LeaseExpiresAt == null || s.LeaseExpiresAt < now)))
+            .ToList();
+        return Task.FromResult(results);
+    }
+
+    public Task<bool> TryAcquireLeaseAsync(string id, string instanceId, TimeSpan leaseDuration)
+    {
+        lock (_leaseLock)
+        {
+            if (!_store.TryGetValue(id, out var request))
+                return Task.FromResult(false);
+
+            var now = DateTime.UtcNow;
+            var canAcquire = request.Status == SearchStatus.Queued ||
+                             (request.Status == SearchStatus.Processing &&
+                              (request.LeaseExpiresAt == null || request.LeaseExpiresAt < now));
+
+            if (!canAcquire)
+                return Task.FromResult(false);
+
+            request.ProcessingInstanceId = instanceId;
+            request.LeaseExpiresAt = now.Add(leaseDuration);
+            return Task.FromResult(true);
+        }
     }
 }
 
