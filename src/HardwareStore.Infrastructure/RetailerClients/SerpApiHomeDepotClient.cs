@@ -54,7 +54,7 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
         RetailerId = "homedepot",
         RetailerName = "Home Depot",
         ProductTitle = p.Title ?? string.Empty,
-        ProductUrl = p.Link,
+        ProductUrl = p.Link ?? string.Empty,
         ImageUrl = p.Thumbnail,
         Price = ParsePrice(p.Price),
         PriceDisplay = p.Price ?? string.Empty,

@@ -60,7 +60,7 @@ public class SerpApiLowesClient : IRetailerSearchClient
         RetailerId = "lowes",
         RetailerName = "Lowe's",
         ProductTitle = r.Title ?? string.Empty,
-        ProductUrl = r.Link,
+        ProductUrl = r.Link ?? string.Empty,
         ImageUrl = r.Thumbnail,
         Price = ParsePrice(r.Price),
         PriceDisplay = r.Price ?? string.Empty,

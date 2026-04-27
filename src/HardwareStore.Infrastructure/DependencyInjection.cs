@@ -28,10 +28,10 @@ public static class DependencyInjection
         services.AddScoped<IRateLimitService, RateLimitService>();
         services.AddScoped<ISearchStatusNotifier, NoOpSearchStatusNotifier>();
 
-        // Playwright browser service (singleton — one browser instance shared across all requests)
+        // Playwright browser service (singleton -- one browser instance shared across all requests)
         services.AddSingleton<PlaywrightBrowserService>();
 
-        // Retailer clients — only one scraping strategy is active at a time.
+        // Retailer clients -- only one scraping strategy is active at a time.
         // UseSerpApi takes priority; UsePlaywright is the fallback override; otherwise plain HttpClient is used.
         // These flags are mutually exclusive: enable at most one of UseSerpApi or UsePlaywright.
         var useSerpApi = configuration.GetValue<bool>("RetailerClients:UseSerpApi");
