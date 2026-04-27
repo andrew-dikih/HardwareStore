@@ -120,10 +120,30 @@ public class NaturalLanguageServiceTests
                         {
                           "summary": "paint supplies",
                           "products": [
-                            {"name": "Paint Brush", "searchTerm": "paint brush", "category": "painting", "unit": "each", "quantity": 2.0, "isSelected": true}
+                            {
+                              "name": "Paint Brush",
+                              "searchTerm": "paint brush",
+                              "category": "painting",
+                              "unit": "each",
+                              "quantity": 2.0,
+                              "isSelected": true,
+                              "description": "A bristle brush used to apply paint to surfaces.",
+                              "specifications": {"bristle type": "nylon", "handle": "wood"},
+                              "dimensions": "2 in wide"
+                            }
                           ],
                           "additionalItems": [
-                            {"name": "Paint Tray", "searchTerm": "paint tray", "category": "painting", "unit": "each", "quantity": 1.0, "isSelected": false}
+                            {
+                              "name": "Paint Tray",
+                              "searchTerm": "paint tray",
+                              "category": "painting",
+                              "unit": "each",
+                              "quantity": 1.0,
+                              "isSelected": false,
+                              "description": "A tray for holding paint while rolling.",
+                              "specifications": {},
+                              "dimensions": "9 in"
+                            }
                           ]
                         }
                         """
@@ -161,9 +181,16 @@ public class NaturalLanguageServiceTests
         Assert.Equal("Paint Brush", result.SuggestedProducts[0].Name);
         Assert.Equal("paint brush", result.SuggestedProducts[0].SearchTerm);
         Assert.True(result.SuggestedProducts[0].IsSelected);
+        Assert.Equal("A bristle brush used to apply paint to surfaces.", result.SuggestedProducts[0].Description);
+        Assert.NotNull(result.SuggestedProducts[0].Specifications);
+        Assert.Equal("nylon", result.SuggestedProducts[0].Specifications!["bristle type"]);
+        Assert.Equal("wood", result.SuggestedProducts[0].Specifications!["handle"]);
+        Assert.Equal("2 in wide", result.SuggestedProducts[0].Dimensions);
         Assert.Single(result.AdditionalItems);
         Assert.Equal("Paint Tray", result.AdditionalItems[0].Name);
         Assert.True(result.AdditionalItems[0].IsAdditional);
+        Assert.Equal("A tray for holding paint while rolling.", result.AdditionalItems[0].Description);
+        Assert.Equal("9 in", result.AdditionalItems[0].Dimensions);
     }
 
     [Fact]

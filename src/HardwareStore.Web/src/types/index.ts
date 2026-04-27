@@ -61,6 +61,9 @@ export interface ProductSelection {
   isAdditional: boolean;
   unit?: string;
   quantity?: number;
+  description?: string;
+  specifications?: Record<string, string>;
+  dimensions?: string;
 }
 
 export interface RetailerDto {
