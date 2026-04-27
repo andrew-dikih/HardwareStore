@@ -56,23 +56,11 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
         ProductTitle = p.Title ?? string.Empty,
         ProductUrl = p.Link ?? string.Empty,
         ImageUrl = p.Thumbnail,
-        Price = ParsePrice(p.Price),
-        PriceDisplay = p.Price ?? string.Empty,
+        Price = p.Price,
+        PriceDisplay = p.Price > 0 ? $"${p.Price:F2}" : string.Empty,
         IsAvailable = true,
         Sku = p.ProductId
     };
-
-    internal static decimal ParsePrice(string? priceStr)
-    {
-        if (string.IsNullOrWhiteSpace(priceStr))
-            return 0;
-
-        // Take the first value from ranges like "$24.98 - $39.98"
-        var first = priceStr.Split('-')[0];
-        var cleaned = first.Replace("$", "").Trim();
-        return decimal.TryParse(cleaned, System.Globalization.NumberStyles.Any,
-            System.Globalization.CultureInfo.InvariantCulture, out var result) ? result : 0;
-    }
 
     private sealed class HomeDepotSearchResponse
     {
@@ -86,7 +74,7 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
         public string? Title { get; set; }
 
         [JsonPropertyName("price")]
-        public string? Price { get; set; }
+        public decimal Price { get; set; }
 
         [JsonPropertyName("link")]
         public string? Link { get; set; }

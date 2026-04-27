@@ -45,8 +45,8 @@ services:
       # RetailerClients__UsePlaywright: "false"
       # SerpAPI integration (set UseSerpApi=true and provide your key from serpapi.com)
       # Mutually exclusive with RetailerClients__UsePlaywright -- enable at most one.
-      # SerpApi__ApiKey: your_key_here
-      # RetailerClients__UseSerpApi: "false"
+      SerpApi__ApiKey: ${SERPAPI_KEY:-}
+      RetailerClients__UseSerpApi: ${RETAILER_USE_SERPAPI:-false}
     restart: on-failure
 
   # ── React / Vite UI ───────────────────────────────────────────────────────
