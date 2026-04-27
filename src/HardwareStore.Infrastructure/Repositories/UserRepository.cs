@@ -46,6 +46,22 @@ public class UserRepository : IUserRepository
         return null;
     }
 
+    public async Task<CoreUser?> GetByFacebookIdAsync(string facebookId)
+    {
+        var container = _context.GetContainer();
+        var query = container.GetItemLinqQueryable<CoreUser>()
+            .Where(u => u.DocumentType == "user" && u.FacebookId == facebookId)
+            .ToFeedIterator();
+
+        while (query.HasMoreResults)
+        {
+            var results = await query.ReadNextAsync();
+            var user = results.FirstOrDefault();
+            if (user != null) return user;
+        }
+        return null;
+    }
+
     public async Task<List<CoreUser>> GetAllAsync()
     {
         var container = _context.GetContainer();
