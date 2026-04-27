@@ -36,6 +36,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.RemoveAll<IEmailService>();
             services.RemoveAll<INaturalLanguageService>();
             services.RemoveAll<ISearchStatusNotifier>();
+            services.RemoveAll<IRetailerSearchClient>();
 
             services.AddSingleton<IUserRepository>(UserRepository);
             services.AddSingleton<IRetailerRepository>(RetailerRepository);
@@ -44,6 +45,8 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
             services.AddSingleton<IEmailService, NoOpEmailService>();
             services.AddSingleton<INaturalLanguageService, FakeNaturalLanguageService>();
             services.AddSingleton<ISearchStatusNotifier, NoOpSearchStatusNotifier>();
+            services.AddScoped<IRetailerSearchClient>(_ => new FakeRetailerSearchClient("homedepot", "Home Depot"));
+            services.AddScoped<IRetailerSearchClient>(_ => new FakeRetailerSearchClient("lowes", "Lowe's"));
         });
     }
 }
