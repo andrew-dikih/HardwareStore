@@ -1,3 +1,36 @@
+export type ProductCandidateConfidence = 'Exact' | 'SpecMatch' | 'Individual';
+
+export interface ProductCandidateItem {
+  retailerId: string;
+  retailerName: string;
+  productTitle: string;
+  price: number;
+  priceDisplay: string;
+  productUrl?: string;
+  imageUrl?: string;
+}
+
+export interface ProductCandidate {
+  id: string;
+  searchTerm: string;
+  displayName: string;
+  brandNames: string[];
+  confidence: ProductCandidateConfidence;
+  items: ProductCandidateItem[];
+}
+
+export interface CandidateGroup {
+  searchTerm: string;
+  displayName: string;
+  isAdditional: boolean;
+  candidates: ProductCandidate[];
+}
+
+export interface PublicParseResponse {
+  summary: string;
+  candidateGroups: CandidateGroup[];
+}
+
 export interface LoginResponse {
   token: string;
   email: string;

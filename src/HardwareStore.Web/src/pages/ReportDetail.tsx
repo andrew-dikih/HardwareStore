@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { getReport } from '../api';
+import { getReport, getPublicReport } from '../api';
 import type { SearchReport, ProductComparison, RetailerProductResult } from '../types';
 
 function formatCurrency(n: number) {
@@ -97,7 +97,7 @@ function RetailerRow({
   );
 }
 
-export default function ReportDetail() {
+export default function ReportDetail({ isPublic = false }: { isPublic?: boolean }) {
   const { id } = useParams<{ id: string }>();
   const [report, setReport] = useState<SearchReport | null>(null);
   const [loading, setLoading] = useState(true);
@@ -105,7 +105,8 @@ export default function ReportDetail() {
 
   useEffect(() => {
     if (!id) return;
-    getReport(id)
+    const fetch = isPublic ? getPublicReport : getReport;
+    fetch(id)
       .then((r) => setReport(r.data))
       .catch(() => setError('Failed to load report.'))
       .finally(() => setLoading(false));
@@ -123,8 +124,8 @@ export default function ReportDetail() {
     return (
       <div className="max-w-lg mx-auto mt-10 text-center space-y-3">
         <p className="text-red-600">{error || 'Report not found.'}</p>
-        <Link to="/reports" className="text-orange-600 hover:underline text-sm">
-          ← Back to reports
+        <Link to={isPublic ? '/' : '/reports'} className="text-orange-600 hover:underline text-sm">
+          {isPublic ? '← Back to home' : '← Back to reports'}
         </Link>
       </div>
     );
@@ -137,8 +138,8 @@ export default function ReportDetail() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <Link to="/reports" className="text-gray-500 hover:text-gray-700 text-sm">
-          ← Reports
+        <Link to={isPublic ? '/' : '/reports'} className="text-gray-500 hover:text-gray-700 text-sm">
+          {isPublic ? '← Home' : '← Reports'}
         </Link>
       </div>
 
@@ -166,7 +167,7 @@ export default function ReportDetail() {
                     ({t.productsFound}/{t.productsFound + t.productsNotFound} found)
                   </span>
                 </div>
-                <span className="font-bold text-gray-900">{t.totalPriceDisplay || formatCurrency(t.totalPrice)}</span>
+                <span className="font-bold text-gray-900">{t.totalPriceDisplay && t.totalPriceDisplay !== 'N/A' ? t.totalPriceDisplay : (t.productsFound > 0 ? formatCurrency(t.totalPrice) : 'N/A')}</span>
               </div>
             ))}
           </div>
@@ -192,7 +193,7 @@ export default function ReportDetail() {
 
       <div className="text-center pt-4">
         <Link
-          to="/search"
+          to={isPublic ? '/' : '/search'}
           className="inline-block px-6 py-3 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 transition"
         >
           New Search

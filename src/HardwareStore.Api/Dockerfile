@@ -9,7 +9,7 @@ RUN dotnet restore src/HardwareStore.Api/HardwareStore.Api.csproj
 
 # Build and publish
 COPY src/ src/
-RUN dotnet publish src/HardwareStore.Api/HardwareStore.Api.csproj -c Release -o /app/publish --no-restore
+RUN dotnet publish src/HardwareStore.Api/HardwareStore.Api.csproj -c Release -o /app/publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app

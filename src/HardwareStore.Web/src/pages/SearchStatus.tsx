@@ -11,8 +11,9 @@ export default function SearchStatusPage() {
   const navigate = useNavigate();
 
   const handleCompleted = useCallback(
-    (reportId: string) => navigate(`/reports/${reportId}`, { replace: true }),
-    [navigate],
+    (reportId: string) =>
+      navigate(isPublic ? `/public/report/${reportId}` : `/reports/${reportId}`, { replace: true }),
+    [navigate, isPublic],
   );
 
   const { status: wsStatus, error: wsError } = useSearchStatus({
@@ -37,7 +38,7 @@ export default function SearchStatusPage() {
         setPollingStatus(res.data);
 
         if (res.data.status === 'Completed' && res.data.reportId) {
-          navigate(`/reports/${res.data.reportId}`, { replace: true });
+          navigate(`/public/report/${res.data.reportId}`, { replace: true });
           return;
         }
         if (res.data.status !== 'Failed') {

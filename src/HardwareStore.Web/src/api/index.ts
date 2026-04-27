@@ -8,6 +8,8 @@ import type {
   ReportSummary,
   UserDto,
   Retailer,
+  PublicParseResponse,
+  ProductCandidate,
 } from '../types';
 
 // Auth
@@ -18,11 +20,19 @@ export const login = (email: string, password: string) =>
   api.post<LoginResponse>('/auth/login', { email, password });
 
 // Public search
-export const publicSearch = (query: string) =>
-  api.post('/public/search', { query });
+export const publicParseQuery = (query: string) =>
+  api.post<PublicParseResponse>('/public/parse', { query });
+
+export const publicSearch = (payload: {
+  query: string;
+  selectedCandidates: ProductCandidate[];
+}) => api.post<{ reportId: string }>('/public/search', payload);
 
 export const getPublicSearchStatus = (id: string) =>
   api.get<SearchStatus>(`/public/search/${id}/status`);
+
+export const getPublicReport = (id: string) =>
+  api.get<SearchReport>(`/public/report/${id}`);
 
 // Authenticated search
 export const parseQuery = (query: string) =>
