@@ -4,6 +4,8 @@ using HardwareStore.Core.Services;
 using HardwareStore.Infrastructure;
 using HardwareStore.Infrastructure.CosmosDb;
 using HardwareStore.Infrastructure.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
@@ -26,7 +28,7 @@ builder.Services.AddScoped<ISearchStatusNotifier, SignalRSearchStatusNotifier>()
 
 // Authentication
 var jwtKey = builder.Configuration["Jwt:Key"] ?? "your-super-secret-key-change-in-production-min-32-chars";
-builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+var authBuilder = builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
@@ -54,7 +56,22 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 return Task.CompletedTask;
             }
         };
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme);
+
+var facebookAppId = builder.Configuration["Facebook:AppId"];
+var facebookAppSecret = builder.Configuration["Facebook:AppSecret"];
+if (!string.IsNullOrEmpty(facebookAppId) && !string.IsNullOrEmpty(facebookAppSecret))
+{
+    authBuilder.AddFacebook(FacebookDefaults.AuthenticationScheme, options =>
+    {
+        options.AppId = facebookAppId;
+        options.AppSecret = facebookAppSecret;
+        options.SignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.Fields.Add("email");
+        options.Fields.Add("name");
     });
+}
 
 builder.Services.AddAuthorization(options =>
 {

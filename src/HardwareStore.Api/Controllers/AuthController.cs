@@ -1,6 +1,9 @@
 namespace HardwareStore.Api.Controllers;
 using HardwareStore.Core.Interfaces;
 using HardwareStore.Core.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Facebook;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -83,6 +86,86 @@ public class AuthController : ControllerBase
             Role = user.Role.ToString(),
             ExpiresAt = DateTime.UtcNow.AddHours(8)
         });
+    }
+
+    [HttpGet("facebook")]
+    public IActionResult Facebook()
+    {
+        if (!IsFacebookConfigured())
+            return StatusCode(503, new { message = "Facebook authentication is not configured." });
+
+        var callbackUrl = Url.Action(nameof(FacebookCallback), "Auth", null, Request.Scheme);
+        var properties = new AuthenticationProperties { RedirectUri = callbackUrl };
+        return Challenge(properties, FacebookDefaults.AuthenticationScheme);
+    }
+
+    [HttpGet("facebook/callback")]
+    public async Task<IActionResult> FacebookCallback()
+    {
+        if (!IsFacebookConfigured())
+            return StatusCode(503, new { message = "Facebook authentication is not configured." });
+
+        var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        if (!result.Succeeded)
+            return BadRequest(new { message = "Facebook authentication failed." });
+
+        var facebookId = result.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
+        var email = result.Principal?.FindFirstValue(ClaimTypes.Email);
+        var name = result.Principal?.FindFirstValue(ClaimTypes.Name);
+
+        if (string.IsNullOrEmpty(facebookId))
+            return BadRequest(new { message = "Could not retrieve Facebook user ID." });
+
+        var user = await _userRepository.GetByFacebookIdAsync(facebookId);
+
+        var normalizedEmail = email?.ToLower().Trim();
+
+        if (user == null && !string.IsNullOrEmpty(normalizedEmail))
+            user = await _userRepository.GetByEmailAsync(normalizedEmail);
+
+        if (user == null)
+        {
+            if (string.IsNullOrEmpty(normalizedEmail))
+                return BadRequest(new { message = "A valid email address is required to create an account." });
+
+            user = new User
+            {
+                Email = normalizedEmail,
+                DisplayName = name?.Trim() ?? "Facebook User",
+                FacebookId = facebookId,
+                Role = UserRole.User,
+                Status = UserStatus.Active
+            };
+            await _userRepository.CreateAsync(user);
+        }
+        else if (user.FacebookId == null)
+        {
+            user.FacebookId = facebookId;
+            await _userRepository.UpdateAsync(user);
+        }
+
+        if (user.Status == UserStatus.Suspended)
+            return Unauthorized(new { message = "Your account has been suspended." });
+
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+        var token = GenerateToken(user);
+        return Ok(new LoginResponse
+        {
+            Token = token,
+            UserId = user.Id,
+            Email = user.Email,
+            DisplayName = user.DisplayName,
+            Role = user.Role.ToString(),
+            ExpiresAt = DateTime.UtcNow.AddHours(8)
+        });
+    }
+
+    private bool IsFacebookConfigured()
+    {
+        var appId = _configuration["Facebook:AppId"];
+        var appSecret = _configuration["Facebook:AppSecret"];
+        return !string.IsNullOrEmpty(appId) && !string.IsNullOrEmpty(appSecret);
     }
 
     private string GenerateToken(User user)
