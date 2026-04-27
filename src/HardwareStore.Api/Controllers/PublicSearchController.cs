@@ -310,12 +310,12 @@ public class PublicSearchController : ControllerBase
 
     private static HashSet<string> Tokenize(string text) =>
         text.ToLowerInvariant()
-            .Split([' ', '-', '_', '/', '(', ')', ',', '.'], StringSplitOptions.RemoveEmptyEntries)
+            .Split(new char[] { ' ', '-', '_', '/', '(', ')', ',', '.' }, StringSplitOptions.RemoveEmptyEntries)
             .Where(t => t.Length > 2 && !Stopwords.Contains(t))
             .ToHashSet();
 
     private static string ExtractBrand(string title) =>
-        title.Split([' ', '-'], StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+        title.Split(new char[] { ' ', '-' }, StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
 
     private static ProductCandidateItem MapToItem(RetailerProductResult r) => new()
     {
