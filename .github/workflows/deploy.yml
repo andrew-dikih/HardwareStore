@@ -67,6 +67,7 @@ jobs:
         env:
           COSMOS_CONNECTION_STRING: ${{ secrets.COSMOS_CONNECTION_STRING }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
+          SERP_API_KEY: ${{ secrets.SERP_API_KEY }}
         run: |
           az containerapp registry set \
             --name ${{ vars.AZURE_API_APP_NAME }} \
@@ -80,7 +81,8 @@ jobs:
             --resource-group ${{ vars.AZURE_RESOURCE_GROUP }} \
             --secrets \
               cosmos-connection-string="$COSMOS_CONNECTION_STRING" \
-              jwt-key="$JWT_KEY"
+              jwt-key="$JWT_KEY" \
+              serp-api-key="$SERP_API_KEY"
 
           az containerapp update \
             --name ${{ vars.AZURE_API_APP_NAME }} \
@@ -94,7 +96,9 @@ jobs:
               Jwt__Key=secretref:jwt-key \
               Jwt__Issuer=HardwareStore \
               Jwt__Audience=HardwareStoreUsers \
-              ASPNETCORE_URLS=http://+:5000
+              ASPNETCORE_URLS=http://+:5000 \
+              RetailerClients__UseSerpApi=true \
+              SerpApi__ApiKey=secretref:serp-api-key
 
       - name: Deploy Web Container App
         run: |
