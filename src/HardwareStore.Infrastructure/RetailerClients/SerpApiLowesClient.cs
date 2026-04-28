@@ -60,7 +60,7 @@ public class SerpApiLowesClient : IRetailerSearchClient
         RetailerId = "lowes",
         RetailerName = "Lowe's",
         ProductTitle = r.Title ?? string.Empty,
-        ProductUrl = r.Link ?? string.Empty,
+        ProductUrl = r.ProductLink ?? r.Link ?? string.Empty,
         ImageUrl = r.Thumbnail,
         Price = ParsePrice(r.Price),
         PriceDisplay = r.Price ?? string.Empty,
@@ -96,6 +96,9 @@ public class SerpApiLowesClient : IRetailerSearchClient
 
         [JsonPropertyName("link")]
         public string? Link { get; set; }
+
+        [JsonPropertyName("product_link")]
+        public string? ProductLink { get; set; }
 
         [JsonPropertyName("thumbnail")]
         public string? Thumbnail { get; set; }

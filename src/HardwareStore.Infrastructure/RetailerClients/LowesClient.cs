@@ -109,15 +109,53 @@ public class LowesClient : IRetailerSearchClient
             RetailerId = "lowes",
             RetailerName = "Lowe's",
             ProductTitle = title,
-            ProductUrl = productUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
-                ? productUrl
-                : $"https://www.lowes.com{productUrl}",
+            ProductUrl = BuildProductUrl(productUrl, sku, title),
             ImageUrl = imageUrl,
             Price = price,
             PriceDisplay = $"${price:F2}",
             IsAvailable = true,
             Sku = sku
         };
+    }
+
+    // Internal for unit testing
+    internal static string BuildProductUrl(string productUrl, string? sku, string title)
+    {
+        if (!string.IsNullOrEmpty(productUrl))
+        {
+            return productUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
+                ? productUrl
+                : $"https://www.lowes.com{productUrl}";
+        }
+
+        if (!string.IsNullOrEmpty(sku) && !string.IsNullOrEmpty(title))
+        {
+            var slug = BuildLowesSlug(title);
+            return $"https://www.lowes.com/pd/{slug}/{sku}";
+        }
+
+        return string.Empty;
+    }
+
+    // Internal for unit testing
+    internal static string BuildLowesSlug(string title)
+    {
+        var sb = new System.Text.StringBuilder();
+        foreach (char c in title)
+        {
+            if (char.IsLetterOrDigit(c) || c == '-')
+            {
+                sb.Append(c);
+            }
+            else if (sb.Length > 0 && sb[sb.Length - 1] != '-')
+            {
+                sb.Append('-');
+            }
+        }
+        // Remove trailing hyphen
+        if (sb.Length > 0 && sb[sb.Length - 1] == '-')
+            sb.Length--;
+        return sb.ToString();
     }
 
     private static bool TryNavigatePath(JsonElement element, string[] path, out JsonElement result)

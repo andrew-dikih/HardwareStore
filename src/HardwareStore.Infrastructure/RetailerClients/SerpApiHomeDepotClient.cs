@@ -55,7 +55,7 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
         RetailerName = "Home Depot",
         ProductTitle = p.Title ?? string.Empty,
         ProductUrl = NormalizeHomeDepotUrl(p.Link) ?? string.Empty,
-        ImageUrl = NormalizeHomeDepotUrl(p.Thumbnail),
+        ImageUrl = p.Thumbnail,
         Price = p.Price,
         PriceDisplay = p.Price > 0 ? $"${p.Price:F2}" : string.Empty,
         IsAvailable = true,
