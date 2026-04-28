@@ -20,4 +20,4 @@ jobs:
           BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           gh api "repos/${{ github.repository }}/git/refs/heads/${BRANCH}" \
-            --method DELETE
+            --method DELETE || true
