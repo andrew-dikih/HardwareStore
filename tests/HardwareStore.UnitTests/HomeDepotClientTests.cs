@@ -195,6 +195,88 @@ public class HomeDepotClientTests
         Assert.Empty(results);
     }
 
+    // ─── NormalizeImageUrl ─────────────────────────────────────────────────
+
+    [Fact]
+    public void NormalizeImageUrl_AbsoluteHttpsUrl_ReturnedAsIs()
+    {
+        var url = "https://images.thdstatic.com/productImages/123/300/123.jpg";
+        Assert.Equal(url, HomeDepotClient.NormalizeImageUrl(url));
+    }
+
+    [Fact]
+    public void NormalizeImageUrl_AbsoluteHttpUrl_ReturnedAsIs()
+    {
+        var url = "http://images.thdstatic.com/productImages/123/300/123.jpg";
+        Assert.Equal(url, HomeDepotClient.NormalizeImageUrl(url));
+    }
+
+    [Fact]
+    public void NormalizeImageUrl_ProtocolRelativeUrl_PrependedWithHttps()
+    {
+        Assert.Equal(
+            "https://images.thdstatic.com/productImages/123/300/123.jpg",
+            HomeDepotClient.NormalizeImageUrl("//images.thdstatic.com/productImages/123/300/123.jpg"));
+    }
+
+    [Fact]
+    public void NormalizeImageUrl_RelativePath_PrependedWithCdnBase()
+    {
+        Assert.Equal(
+            "https://images.thdstatic.com/productImages/123/300/123.jpg",
+            HomeDepotClient.NormalizeImageUrl("/productImages/123/300/123.jpg"));
+    }
+
+    [Fact]
+    public void NormalizeImageUrl_Null_ReturnsNull()
+    {
+        Assert.Null(HomeDepotClient.NormalizeImageUrl(null));
+    }
+
+    [Fact]
+    public void NormalizeImageUrl_EmptyString_ReturnsNull()
+    {
+        Assert.Null(HomeDepotClient.NormalizeImageUrl(""));
+    }
+
+    [Fact]
+    public void ParseSearchResults_RelativeImageUrl_IsNormalized()
+    {
+        var html = BuildHtml(@"[
+            {
+                ""itemId"": ""abc"",
+                ""description"": ""Some Product"",
+                ""canonicalUrl"": ""/p/some/abc"",
+                ""pricing"": { ""value"": 9.99 },
+                ""media"": { ""images"": [{ ""url"": ""/productImages/abc/300/abc.jpg"" }] }
+            }
+        ]");
+
+        var results = HomeDepotClient.ParseSearchResults(html);
+
+        Assert.Single(results);
+        Assert.Equal("https://images.thdstatic.com/productImages/abc/300/abc.jpg", results[0].ImageUrl);
+    }
+
+    [Fact]
+    public void ParseSearchResults_ProtocolRelativeImageUrl_IsNormalized()
+    {
+        var html = BuildHtml(@"[
+            {
+                ""itemId"": ""def"",
+                ""description"": ""Another Product"",
+                ""canonicalUrl"": ""/p/another/def"",
+                ""pricing"": { ""value"": 5.00 },
+                ""media"": { ""images"": [{ ""url"": ""//images.thdstatic.com/productImages/def/300/def.jpg"" }] }
+            }
+        ]");
+
+        var results = HomeDepotClient.ParseSearchResults(html);
+
+        Assert.Single(results);
+        Assert.Equal("https://images.thdstatic.com/productImages/def/300/def.jpg", results[0].ImageUrl);
+    }
+
     // ─── SearchProductAsync – HTTP failure handling ───────────────────────
 
     private static HomeDepotClient CreateClient(HttpMessageHandler handler)

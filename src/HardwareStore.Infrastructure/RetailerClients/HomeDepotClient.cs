@@ -112,12 +112,21 @@ public class HomeDepotClient : IRetailerSearchClient
             ProductUrl = canonicalUrl.StartsWith("http", StringComparison.OrdinalIgnoreCase)
                 ? canonicalUrl
                 : $"https://www.homedepot.com{canonicalUrl}",
-            ImageUrl = imageUrl,
+            ImageUrl = NormalizeImageUrl(imageUrl),
             Price = price,
             PriceDisplay = $"${price:F2}",
             IsAvailable = true,
             Sku = sku
         };
+    }
+
+    // Internal for unit testing
+    internal static string? NormalizeImageUrl(string? url)
+    {
+        if (string.IsNullOrEmpty(url)) return null;
+        if (url.StartsWith("http", StringComparison.OrdinalIgnoreCase)) return url;
+        if (url.StartsWith("//")) return "https:" + url;
+        return "https://images.thdstatic.com" + url;
     }
 
     private static bool TryNavigatePath(JsonElement element, string[] path, out JsonElement result)

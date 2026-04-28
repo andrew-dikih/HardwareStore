@@ -224,6 +224,93 @@ public class LowesClientTests
         Assert.Empty(results);
     }
 
+    // ─── BuildLowesSlug ───────────────────────────────────────────────────
+
+    [Theory]
+    [InlineData("Moen Arbor Matte Black", "Moen-Arbor-Matte-Black")]
+    [InlineData("1/4-in x 2-in Hex Bolt", "1-4-in-x-2-in-Hex-Bolt")]
+    [InlineData("Product (5-Pack)", "Product-5-Pack")]
+    [InlineData("Commercial/Residential Faucet", "Commercial-Residential-Faucet")]
+    [InlineData("Single Word", "Single-Word")]
+    public void BuildLowesSlug_ConvertsDescriptionToSlug(string description, string expected)
+    {
+        Assert.Equal(expected, LowesClient.BuildLowesSlug(description));
+    }
+
+    // ─── BuildProductUrl ──────────────────────────────────────────────────
+
+    [Fact]
+    public void BuildProductUrl_WithRelativeProductUrl_PrependsBaseUrl()
+    {
+        Assert.Equal(
+            "https://www.lowes.com/pd/test/123",
+            LowesClient.BuildProductUrl("/pd/test/123", "123", "Test Product"));
+    }
+
+    [Fact]
+    public void BuildProductUrl_WithAbsoluteProductUrl_UsedAsIs()
+    {
+        Assert.Equal(
+            "https://www.lowes.com/pd/test/123",
+            LowesClient.BuildProductUrl("https://www.lowes.com/pd/test/123", "123", "Test Product"));
+    }
+
+    [Fact]
+    public void BuildProductUrl_WithEmptyProductUrlAndSku_ConstructsFromSlugAndSku()
+    {
+        var result = LowesClient.BuildProductUrl("", "5000058723", "Moen Arbor Matte Black Faucet");
+        Assert.Equal("https://www.lowes.com/pd/Moen-Arbor-Matte-Black-Faucet/5000058723", result);
+    }
+
+    [Fact]
+    public void BuildProductUrl_WithNullProductUrlAndSku_ConstructsFromSlugAndSku()
+    {
+        var result = LowesClient.BuildProductUrl("", "9999", "DEWALT 20V MAX Drill");
+        Assert.Equal("https://www.lowes.com/pd/DEWALT-20V-MAX-Drill/9999", result);
+    }
+
+    [Fact]
+    public void BuildProductUrl_WithEmptyProductUrlAndNoSku_ReturnsEmpty()
+    {
+        Assert.Equal(string.Empty, LowesClient.BuildProductUrl("", null, "Some Product"));
+    }
+
+    [Fact]
+    public void ParseSearchResults_WhenProductUrlMissing_ConstructsFromDescriptionAndSku()
+    {
+        var html = BuildHtml(@"[
+            {
+                ""itemid"": ""5000058723"",
+                ""description"": ""Moen Arbor Matte Black Faucet"",
+                ""pricing"": { ""amount"": 209.00 },
+                ""imageUrl"": ""https://mobileimages.lowes.com/test.jpg""
+            }
+        ]");
+
+        var results = LowesClient.ParseSearchResults(html);
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/Moen-Arbor-Matte-Black-Faucet/5000058723", results[0].ProductUrl);
+    }
+
+    [Fact]
+    public void ParseSearchResults_WhenProductUrlIsNull_ConstructsFromDescriptionAndSku()
+    {
+        var html = BuildHtml(@"[
+            {
+                ""itemid"": ""1234567"",
+                ""description"": ""DEWALT 20V Drill"",
+                ""productUrl"": null,
+                ""pricing"": { ""amount"": 99.00 }
+            }
+        ]");
+
+        var results = LowesClient.ParseSearchResults(html);
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/DEWALT-20V-Drill/1234567", results[0].ProductUrl);
+    }
+
     // ─── SearchProductAsync – HTTP failure handling ───────────────────────
 
     private static LowesClient CreateClient(HttpMessageHandler handler)

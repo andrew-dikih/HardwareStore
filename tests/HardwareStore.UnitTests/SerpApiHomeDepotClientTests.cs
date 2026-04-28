@@ -186,6 +186,33 @@ public class SerpApiHomeDepotClientTests
         Assert.Null(results[0].ImageUrl);
     }
 
+    [Fact]
+    public async Task SearchProductAsync_ThumbnailUsedAsIsWithoutNormalization()
+    {
+        var json = """
+            {
+                "products": [
+                    {
+                        "title": "Some Product",
+                        "price": 12.99,
+                        "link": "https://apionline.homedepot.com/p/some/123",
+                        "thumbnail": "https://apionline.homedepot.com/productImages/123/300/123.jpg",
+                        "product_id": "123"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("product", new Retailer());
+
+        Assert.Single(results);
+        // Link (ProductUrl) should be normalized to www.homedepot.com
+        Assert.Equal("https://www.homedepot.com/p/some/123", results[0].ProductUrl);
+        // Thumbnail (ImageUrl) should NOT be normalized – returned as-is from SerpAPI
+        Assert.Equal("https://apionline.homedepot.com/productImages/123/300/123.jpg", results[0].ImageUrl);
+    }
+
     // ── Error handling ────────────────────────────────────────────────────────
 
     [Fact]

@@ -154,6 +154,75 @@ public class SerpApiLowesClientTests
     }
 
     [Fact]
+    public async Task SearchProductAsync_WithProductLink_UsesProductLinkOverLink()
+    {
+        var json = """
+            {
+                "shopping_results": [
+                    {
+                        "title": "Moen Faucet",
+                        "price": "$209.00",
+                        "link": "https://www.google.com/shopping/product/1/specs",
+                        "product_link": "https://www.lowes.com/pd/Moen-Faucet/5000058723",
+                        "source": "Lowe's"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("faucet", new Retailer());
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/Moen-Faucet/5000058723", results[0].ProductUrl);
+    }
+
+    [Fact]
+    public async Task SearchProductAsync_WithNullLinkAndProductLink_UsesProductLink()
+    {
+        var json = """
+            {
+                "shopping_results": [
+                    {
+                        "title": "Moen Faucet",
+                        "price": "$209.00",
+                        "product_link": "https://www.lowes.com/pd/Moen-Faucet/5000058723",
+                        "source": "Lowe's"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("faucet", new Retailer());
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/Moen-Faucet/5000058723", results[0].ProductUrl);
+    }
+
+    [Fact]
+    public async Task SearchProductAsync_WithNullLinkAndNoProductLink_SetsEmptyProductUrl()
+    {
+        var json = """
+            {
+                "shopping_results": [
+                    {
+                        "title": "Moen Faucet",
+                        "price": "$209.00",
+                        "source": "Lowe's"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("faucet", new Retailer());
+
+        Assert.Single(results);
+        Assert.Equal(string.Empty, results[0].ProductUrl);
+    }
+
+    [Fact]
     public async Task SearchProductAsync_FiltersOutNonLowesResults()
     {
         var json = """
