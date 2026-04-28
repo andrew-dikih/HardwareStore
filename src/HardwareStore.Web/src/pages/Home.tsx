@@ -18,10 +18,13 @@ const confidenceStyle: Record<ProductCandidateConfidence, string> = {
   Individual: 'bg-gray-100 text-gray-600',
 };
 
-function RetailerColumn({ item }: { item: ProductCandidateItem }) {
+function RetailerColumn({ item, onClick }: { item: ProductCandidateItem; onClick?: () => void }) {
   const priceText = item.priceDisplay || (typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : null);
   return (
-    <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
+    <div
+      className={`flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white transition ${onClick ? 'cursor-pointer hover:border-orange-300 hover:bg-orange-50' : ''}`}
+      onClick={onClick}
+    >
       <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
         {item.imageUrl ? (
           <img
@@ -182,14 +185,13 @@ export default function Home() {
                       </div>
 
                       {/* Two-column retailer image comparison */}
-                      <div
-                        className={`grid grid-cols-2 gap-3 ${retailerUrls.length > 0 ? 'cursor-pointer' : ''}`}
-                        onClick={retailerUrls.length > 0 ? handleOpenTabs : undefined}
-                        title={retailerUrls.length > 0 ? `Open at ${candidate.items.map((i) => i.retailerName).join(' & ')}` : undefined}
-                      >
+                      <div className="grid grid-cols-2 gap-3">
                         {/* Left column — first retailer */}
                         {itemLeft ? (
-                          <RetailerColumn item={itemLeft} />
+                          <RetailerColumn
+                            item={itemLeft}
+                            onClick={itemLeft.productUrl ? () => window.open(itemLeft.productUrl!, '_blank', 'noopener,noreferrer') : undefined}
+                          />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50 aspect-square">
                             <p className="text-xs text-gray-400 italic text-center">Not available</p>
@@ -198,7 +200,10 @@ export default function Home() {
 
                         {/* Right column — second retailer (or "not found" placeholder) */}
                         {itemRight ? (
-                          <RetailerColumn item={itemRight} />
+                          <RetailerColumn
+                            item={itemRight}
+                            onClick={itemRight.productUrl ? () => window.open(itemRight.productUrl!, '_blank', 'noopener,noreferrer') : undefined}
+                          />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50">
                             <p className="text-xs text-gray-400 italic text-center">Not found at other retailers</p>
