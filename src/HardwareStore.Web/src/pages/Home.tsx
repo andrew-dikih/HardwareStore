@@ -243,8 +243,9 @@ export default function Home() {
         <button
           onClick={handleLaunch}
           disabled={loading || selected.size === 0}
-          className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-base"
+          className="w-full bg-orange-600 text-white font-semibold py-4 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition text-base flex items-center justify-center gap-2"
         >
+          {loading && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin flex-shrink-0" />}
           {loading ? 'Comparing prices…' : `🚀 Compare ${selected.size} Selected Product${selected.size !== 1 ? 's' : ''}`}
         </button>
       </div>
@@ -287,8 +288,9 @@ export default function Home() {
           <button
             type="submit"
             disabled={loading || !query.trim()}
-            className="w-full bg-orange-600 text-white font-semibold py-3 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
+            className="w-full bg-orange-600 text-white font-semibold py-3 rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
           >
+            {loading && <span className="w-4 h-4 border-2 border-white/40 border-t-white rounded-full animate-spin flex-shrink-0" />}
             {loading ? 'Searching retailers…' : 'Find Products to Compare'}
           </button>
         </form>
