@@ -187,7 +187,7 @@ public class SerpApiHomeDepotClientTests
     }
 
     [Fact]
-    public async Task SearchProductAsync_ThumbnailUsedAsIsWithoutNormalization()
+    public async Task SearchProductAsync_ThumbnailWithApiDomain_IsNormalizedToCdn()
     {
         var json = """
             {
@@ -209,8 +209,8 @@ public class SerpApiHomeDepotClientTests
         Assert.Single(results);
         // Link (ProductUrl) should be normalized to www.homedepot.com
         Assert.Equal("https://www.homedepot.com/p/some/123", results[0].ProductUrl);
-        // Thumbnail (ImageUrl) should NOT be normalized – returned as-is from SerpAPI
-        Assert.Equal("https://apionline.homedepot.com/productImages/123/300/123.jpg", results[0].ImageUrl);
+        // Thumbnail (ImageUrl) should be normalized from the internal API domain to the public image CDN
+        Assert.Equal("https://images.thdstatic.com/productImages/123/300/123.jpg", results[0].ImageUrl);
     }
 
     // ── Error handling ────────────────────────────────────────────────────────
