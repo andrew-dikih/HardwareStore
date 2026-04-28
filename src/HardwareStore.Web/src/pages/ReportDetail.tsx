@@ -75,7 +75,7 @@ function RetailerRow({
     >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 flex-wrap">
-          <span className={`text-sm font-medium text-gray-700 ${isClickable ? 'group-hover:underline' : ''}`}>{result.retailerName}</span>
+          <span className="text-sm font-medium text-gray-700">{result.retailerName}</span>
           {isBest && <BestBadge />}
         </div>
         {result.isAvailable ? (

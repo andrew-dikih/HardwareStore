@@ -218,7 +218,7 @@ export default function Search() {
                 type="checkbox"
                 checked={p.isSelected}
                 onChange={() => toggleProduct(p.id)}
-                className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0 cursor-pointer"
+                className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0"
               />
               <div
                 className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'} ${selectedRetailersWithUrl.length > 0 ? 'cursor-pointer group hover:border-orange-400' : ''}`}
@@ -291,7 +291,7 @@ export default function Search() {
                   type="checkbox"
                   checked={p.isSelected}
                   onChange={() => toggleAdditional(p.id)}
-                  className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0 cursor-pointer"
+                  className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0"
                 />
                 <div
                   className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'} ${selectedRetailersWithUrl.length > 0 ? 'cursor-pointer group hover:border-orange-400' : ''}`}

@@ -141,7 +141,7 @@ export default function Home() {
                         type="checkbox"
                         checked={selected.has(candidate.id)}
                         onChange={() => toggleCandidate(candidate.id)}
-                        className="mt-1 h-4 w-4 text-orange-600 rounded flex-shrink-0 cursor-pointer"
+                        className="mt-1 h-4 w-4 text-orange-600 rounded flex-shrink-0"
                       />
                       <div
                         className={`flex items-start gap-3 flex-1 min-w-0 ${retailerUrls.length > 0 ? 'cursor-pointer group' : ''}`}
