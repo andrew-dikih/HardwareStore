@@ -123,73 +123,112 @@ export default function Home() {
             ) : (
               <div className="divide-y divide-gray-100">
                 {group.candidates.map((candidate) => {
-                  const thumbnail = candidate.items.find((i) => i.imageUrl)?.imageUrl;
                   const retailerUrls = candidate.items
                     .map((i) => i.productUrl)
                     .filter((u): u is string => Boolean(u));
                   const handleOpenTabs = () => {
                     retailerUrls.forEach((url) => window.open(url, '_blank', 'noopener,noreferrer'));
                   };
+                  const itemLeft = candidate.items[0] ?? null;
+                  const itemRight = candidate.items[1] ?? null;
                   return (
                     <div
                       key={candidate.id}
-                      className={`flex items-start gap-3 px-5 py-4 transition ${
+                      className={`px-5 py-4 transition ${
                         selected.has(candidate.id) ? 'bg-orange-50' : 'hover:bg-gray-50'
                       }`}
                     >
-                      <input
-                        type="checkbox"
-                        checked={selected.has(candidate.id)}
-                        onChange={() => toggleCandidate(candidate.id)}
-                        className="mt-1 h-4 w-4 text-orange-600 rounded flex-shrink-0"
-                      />
+                      {/* Header row: checkbox + display name + badge */}
+                      <div className="flex items-center gap-3 mb-3">
+                        <input
+                          type="checkbox"
+                          checked={selected.has(candidate.id)}
+                          onChange={() => toggleCandidate(candidate.id)}
+                          className="h-4 w-4 text-orange-600 rounded flex-shrink-0"
+                        />
+                        <div
+                          className={`flex items-center gap-2 flex-wrap flex-1 min-w-0 ${retailerUrls.length > 0 ? 'cursor-pointer group' : ''}`}
+                          onClick={retailerUrls.length > 0 ? handleOpenTabs : undefined}
+                        >
+                          <span className={`text-sm font-semibold text-gray-900 ${retailerUrls.length > 0 ? 'group-hover:text-orange-600 group-hover:underline transition' : ''}`}>
+                            {candidate.displayName}
+                          </span>
+                          <span className={`text-xs font-semibold px-2 py-0.5 rounded-full flex-shrink-0 ${confidenceStyle[candidate.confidence]}`}>
+                            {confidenceLabel[candidate.confidence]}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Two-column retailer image comparison */}
                       <div
-                        className={`flex items-start gap-3 flex-1 min-w-0 ${retailerUrls.length > 0 ? 'cursor-pointer group' : ''}`}
+                        className={`grid grid-cols-2 gap-3 ${retailerUrls.length > 0 ? 'cursor-pointer' : ''}`}
                         onClick={retailerUrls.length > 0 ? handleOpenTabs : undefined}
                         title={retailerUrls.length > 0 ? `Open at ${candidate.items.map((i) => i.retailerName).join(' & ')}` : undefined}
                       >
-                        {thumbnail && (
-                          <img
-                            src={thumbnail}
-                            alt={candidate.displayName}
-                            className="w-16 h-16 object-contain rounded-lg border border-gray-100 flex-shrink-0 bg-white"
-                          />
+                        {/* Left column — first retailer */}
+                        {itemLeft ? (
+                          <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
+                            <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
+                              {itemLeft.imageUrl ? (
+                                <img
+                                  src={itemLeft.imageUrl}
+                                  alt={itemLeft.productTitle}
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : (
+                                <span className="text-4xl text-gray-300">🏪</span>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold text-orange-600 truncate">{itemLeft.retailerName}</p>
+                            <p className="text-sm font-bold text-gray-900">{itemLeft.priceDisplay || `$${itemLeft.price.toFixed(2)}`}</p>
+                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-3" title={itemLeft.productTitle}>{itemLeft.productTitle}</p>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50 aspect-square">
+                            <p className="text-xs text-gray-400 italic text-center">Not available</p>
+                          </div>
                         )}
-                        <div className="flex-1 min-w-0 space-y-1.5">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <span className={`text-sm font-semibold text-gray-900 ${retailerUrls.length > 0 ? 'group-hover:text-orange-600 group-hover:underline transition' : ''}`}>{candidate.displayName}</span>
-                            <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${confidenceStyle[candidate.confidence]}`}>
-                              {confidenceLabel[candidate.confidence]}
-                            </span>
+
+                        {/* Right column — second retailer (or "not found" placeholder) */}
+                        {itemRight ? (
+                          <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
+                            <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
+                              {itemRight.imageUrl ? (
+                                <img
+                                  src={itemRight.imageUrl}
+                                  alt={itemRight.productTitle}
+                                  className="w-full h-full object-contain"
+                                />
+                              ) : (
+                                <span className="text-4xl text-gray-300">🏪</span>
+                              )}
+                            </div>
+                            <p className="text-xs font-semibold text-orange-600 truncate">{itemRight.retailerName}</p>
+                            <p className="text-sm font-bold text-gray-900">{itemRight.priceDisplay || `$${itemRight.price.toFixed(2)}`}</p>
+                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-3" title={itemRight.productTitle}>{itemRight.productTitle}</p>
                           </div>
-                          <div className="space-y-1">
-                            {candidate.items.map((item) => (
-                              <div key={item.retailerId} className="flex items-center gap-2">
-                                {item.imageUrl && !thumbnail && (
-                                  <img
-                                    src={item.imageUrl}
-                                    alt={item.productTitle}
-                                    className="w-8 h-8 object-contain rounded border border-gray-100 bg-white flex-shrink-0"
-                                  />
-                                )}
-                                <div className="min-w-0">
-                                  <span className="text-xs font-medium text-gray-500">{item.retailerName}: </span>
-                                  <span className="text-xs text-gray-900 font-semibold">{item.priceDisplay || `$${item.price.toFixed(2)}`}</span>
-                                  {item.productTitle && item.productTitle !== candidate.displayName && (
-                                    <p className="text-xs text-gray-400 truncate" title={item.productTitle}>{item.productTitle}</p>
-                                  )}
-                                </div>
-                              </div>
-                            ))}
-                            {candidate.items.length === 1 && (
-                              <span className="text-xs text-gray-400 italic">Not found at other retailers</span>
-                            )}
+                        ) : (
+                          <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50">
+                            <p className="text-xs text-gray-400 italic text-center">Not found at other retailers</p>
                           </div>
-                          {retailerUrls.length > 0 && (
-                            <p className="text-xs text-orange-500">Click to view at {candidate.items.map((i) => i.retailerName).join(' & ')} →</p>
-                          )}
-                        </div>
+                        )}
                       </div>
+
+                      {/* Extra retailers beyond the first two (rare) */}
+                      {candidate.items.length > 2 && (
+                        <div className="mt-2 space-y-0.5">
+                          {candidate.items.slice(2).map((item) => (
+                            <div key={item.retailerId} className="flex items-center gap-2 text-xs text-gray-500">
+                              <span className="font-medium">{item.retailerName}:</span>
+                              <span className="font-bold text-gray-800">{item.priceDisplay || `$${item.price.toFixed(2)}`}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {retailerUrls.length > 0 && (
+                        <p className="text-xs text-orange-500 mt-2">Click to view at {candidate.items.map((i) => i.retailerName).join(' & ')} →</p>
+                      )}
                     </div>
                   );
                 })}
