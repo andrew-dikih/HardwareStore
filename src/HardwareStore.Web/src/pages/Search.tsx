@@ -81,6 +81,15 @@ export default function Search() {
   const toggleRetailer = (id: string) =>
     setRetailers((rs) => rs.map((r) => (r.id === id ? { ...r, isSelected: !r.isSelected } : r)));
 
+  const buildSearchUrl = (template: string, searchTerm: string): string =>
+    template.replace('{searchTerm}', encodeURIComponent(searchTerm));
+
+  const openProductTabs = (searchTerm: string) => {
+    retailers
+      .filter((r) => r.isSelected && r.searchUrlTemplate)
+      .forEach((r) => window.open(buildSearchUrl(r.searchUrlTemplate!, searchTerm), '_blank', 'noopener,noreferrer'));
+  };
+
   const handleLaunch = async () => {
     const selectedRetailerIds = retailers.filter((r) => r.isSelected).map((r) => r.id);
     if (selectedRetailerIds.length === 0) {
@@ -201,88 +210,31 @@ export default function Search() {
       <div className="bg-white rounded-2xl shadow-md p-6 space-y-3">
         <h2 className="font-semibold text-gray-800">Products to Compare</h2>
         <p className="text-xs text-gray-500">Select which items to include in the search.</p>
-        {products.map((p) => (
-          <label key={p.id} className="flex items-start gap-3 cursor-pointer group">
-            <input
-              type="checkbox"
-              checked={p.isSelected}
-              onChange={() => toggleProduct(p.id)}
-              className="mt-1 h-4 w-4 text-orange-600 rounded shrink-0"
-            />
-            <div className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
-              <div className="flex items-start gap-3">
-                <div className="shrink-0 w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-xl">
-                  {getCategoryIcon(p.category)}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold text-gray-800 group-hover:text-orange-600 transition">
-                    {p.name}
-                  </p>
-                  {p.category && (
-                    <span className="inline-block text-xs text-orange-600 bg-orange-100 rounded-full px-2 py-0.5 mt-0.5">
-                      {p.category}
-                    </span>
-                  )}
-                  {p.description && (
-                    <p className="text-xs text-gray-500 mt-1 leading-relaxed">{p.description}</p>
-                  )}
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
-                    {p.quantity != null && p.unit && (
-                      <span className="text-xs text-gray-500">
-                        <span className="font-medium text-gray-700">Qty:</span> {p.quantity} {p.unit}
-                      </span>
-                    )}
-                    {p.dimensions && (
-                      <span className="text-xs text-gray-500">
-                        <span className="font-medium text-gray-700">Size:</span> {p.dimensions}
-                      </span>
-                    )}
-                    {p.searchTerm !== p.name && (
-                      <span className="text-xs text-gray-400">
-                        <span className="font-medium">Term:</span> {p.searchTerm}
-                      </span>
-                    )}
-                  </div>
-                  {p.specifications && Object.keys(p.specifications).length > 0 && (
-                    <div className="flex flex-wrap gap-1.5 mt-2">
-                      {Object.entries(p.specifications).map(([key, value]) => (
-                        <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
-                          <span className="font-medium">{key}:</span> {value}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </label>
-        ))}
-      </div>
-
-      {/* Additional Items */}
-      {additional.length > 0 && (
-        <div className="bg-white rounded-2xl shadow-md p-6 space-y-3">
-          <h2 className="font-semibold text-gray-800">Recommended Add-ons</h2>
-          <p className="text-xs text-gray-500">Related items you might also need.</p>
-          {additional.map((p) => (
-            <label key={p.id} className="flex items-start gap-3 cursor-pointer group">
+        {products.map((p) => {
+          const selectedRetailersWithUrl = retailers.filter((r) => r.isSelected && r.searchUrlTemplate);
+          return (
+            <div key={p.id} className="flex items-start gap-3">
               <input
                 type="checkbox"
                 checked={p.isSelected}
-                onChange={() => toggleAdditional(p.id)}
-                className="mt-1 h-4 w-4 text-orange-600 rounded shrink-0"
+                onChange={() => toggleProduct(p.id)}
+                className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0 cursor-pointer"
               />
-              <div className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'}`}>
+              <div
+                className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'} ${selectedRetailersWithUrl.length > 0 ? 'cursor-pointer group hover:border-orange-400' : ''}`}
+                onClick={selectedRetailersWithUrl.length > 0 ? () => openProductTabs(p.searchTerm) : undefined}
+                title={selectedRetailersWithUrl.length > 0 ? `Search at ${selectedRetailersWithUrl.map((r) => r.name).join(' & ')}` : undefined}
+              >
                 <div className="flex items-start gap-3">
-                  <div className="shrink-0 w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xl">
+                  <div className="shrink-0 w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center text-xl">
                     {getCategoryIcon(p.category)}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-semibold text-gray-800 group-hover:text-orange-600 transition">
+                    <p className={`text-sm font-semibold text-gray-800 transition ${selectedRetailersWithUrl.length > 0 ? 'group-hover:text-orange-600 group-hover:underline' : ''}`}>
                       {p.name}
                     </p>
                     {p.category && (
-                      <span className="inline-block text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 mt-0.5">
+                      <span className="inline-block text-xs text-orange-600 bg-orange-100 rounded-full px-2 py-0.5 mt-0.5">
                         {p.category}
                       </span>
                     )}
@@ -300,6 +252,11 @@ export default function Search() {
                           <span className="font-medium text-gray-700">Size:</span> {p.dimensions}
                         </span>
                       )}
+                      {p.searchTerm !== p.name && (
+                        <span className="text-xs text-gray-400">
+                          <span className="font-medium">Term:</span> {p.searchTerm}
+                        </span>
+                      )}
                     </div>
                     {p.specifications && Object.keys(p.specifications).length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-2">
@@ -310,11 +267,83 @@ export default function Search() {
                         ))}
                       </div>
                     )}
+                    {selectedRetailersWithUrl.length > 0 && (
+                      <p className="text-xs text-orange-500 mt-1.5">Click to search at {selectedRetailersWithUrl.map((r) => r.name).join(' & ')} →</p>
+                    )}
                   </div>
                 </div>
               </div>
-            </label>
-          ))}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Additional Items */}
+      {additional.length > 0 && (
+        <div className="bg-white rounded-2xl shadow-md p-6 space-y-3">
+          <h2 className="font-semibold text-gray-800">Recommended Add-ons</h2>
+          <p className="text-xs text-gray-500">Related items you might also need.</p>
+          {additional.map((p) => {
+            const selectedRetailersWithUrl = retailers.filter((r) => r.isSelected && r.searchUrlTemplate);
+            return (
+              <div key={p.id} className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  checked={p.isSelected}
+                  onChange={() => toggleAdditional(p.id)}
+                  className="mt-4 h-4 w-4 text-orange-600 rounded shrink-0 cursor-pointer"
+                />
+                <div
+                  className={`flex-1 border rounded-xl p-3 transition ${p.isSelected ? 'border-orange-300 bg-orange-50' : 'border-gray-200 bg-gray-50'} ${selectedRetailersWithUrl.length > 0 ? 'cursor-pointer group hover:border-orange-400' : ''}`}
+                  onClick={selectedRetailersWithUrl.length > 0 ? () => openProductTabs(p.searchTerm) : undefined}
+                  title={selectedRetailersWithUrl.length > 0 ? `Search at ${selectedRetailersWithUrl.map((r) => r.name).join(' & ')}` : undefined}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="shrink-0 w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center text-xl">
+                      {getCategoryIcon(p.category)}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className={`text-sm font-semibold text-gray-800 transition ${selectedRetailersWithUrl.length > 0 ? 'group-hover:text-orange-600 group-hover:underline' : ''}`}>
+                        {p.name}
+                      </p>
+                      {p.category && (
+                        <span className="inline-block text-xs text-gray-500 bg-gray-100 rounded-full px-2 py-0.5 mt-0.5">
+                          {p.category}
+                        </span>
+                      )}
+                      {p.description && (
+                        <p className="text-xs text-gray-500 mt-1 leading-relaxed">{p.description}</p>
+                      )}
+                      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1.5">
+                        {p.quantity != null && p.unit && (
+                          <span className="text-xs text-gray-500">
+                            <span className="font-medium text-gray-700">Qty:</span> {p.quantity} {p.unit}
+                          </span>
+                        )}
+                        {p.dimensions && (
+                          <span className="text-xs text-gray-500">
+                            <span className="font-medium text-gray-700">Size:</span> {p.dimensions}
+                          </span>
+                        )}
+                      </div>
+                      {p.specifications && Object.keys(p.specifications).length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-2">
+                          {Object.entries(p.specifications).map(([key, value]) => (
+                            <span key={key} aria-label={`${key}: ${value}`} className="text-xs bg-gray-100 text-gray-600 rounded-md px-2 py-0.5">
+                              <span className="font-medium">{key}:</span> {value}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                      {selectedRetailersWithUrl.length > 0 && (
+                        <p className="text-xs text-orange-500 mt-1.5">Click to search at {selectedRetailersWithUrl.map((r) => r.name).join(' & ')} →</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
