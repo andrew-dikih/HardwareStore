@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { publicParseQuery, publicSearch } from '../api';
-import type { CandidateGroup, ProductCandidate, ProductCandidateConfidence } from '../types';
+import type { CandidateGroup, ProductCandidate, ProductCandidateConfidence, ProductCandidateItem } from '../types';
 import type { AxiosError } from 'axios';
 
 type Step = 'input' | 'review';
@@ -17,6 +17,28 @@ const confidenceStyle: Record<ProductCandidateConfidence, string> = {
   SpecMatch: 'bg-blue-100 text-blue-800',
   Individual: 'bg-gray-100 text-gray-600',
 };
+
+function RetailerColumn({ item }: { item: ProductCandidateItem }) {
+  const priceText = item.priceDisplay || (typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : null);
+  return (
+    <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
+      <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt={item.productTitle}
+            className="w-full h-full object-contain"
+          />
+        ) : (
+          <span className="text-4xl text-gray-300">🏪</span>
+        )}
+      </div>
+      <p className="text-xs font-semibold text-orange-600 truncate">{item.retailerName}</p>
+      {priceText && <p className="text-sm font-bold text-gray-900">{priceText}</p>}
+      <p className="text-xs text-gray-500 leading-relaxed line-clamp-3" title={item.productTitle}>{item.productTitle}</p>
+    </div>
+  );
+}
 
 export default function Home() {
   const [step, setStep] = useState<Step>('input');
@@ -167,22 +189,7 @@ export default function Home() {
                       >
                         {/* Left column — first retailer */}
                         {itemLeft ? (
-                          <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
-                            <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
-                              {itemLeft.imageUrl ? (
-                                <img
-                                  src={itemLeft.imageUrl}
-                                  alt={itemLeft.productTitle}
-                                  className="w-full h-full object-contain"
-                                />
-                              ) : (
-                                <span className="text-4xl text-gray-300">🏪</span>
-                              )}
-                            </div>
-                            <p className="text-xs font-semibold text-orange-600 truncate">{itemLeft.retailerName}</p>
-                            <p className="text-sm font-bold text-gray-900">{itemLeft.priceDisplay || `$${itemLeft.price.toFixed(2)}`}</p>
-                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-3" title={itemLeft.productTitle}>{itemLeft.productTitle}</p>
-                          </div>
+                          <RetailerColumn item={itemLeft} />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50 aspect-square">
                             <p className="text-xs text-gray-400 italic text-center">Not available</p>
@@ -191,22 +198,7 @@ export default function Home() {
 
                         {/* Right column — second retailer (or "not found" placeholder) */}
                         {itemRight ? (
-                          <div className="flex flex-col gap-1.5 border border-gray-100 rounded-xl p-2.5 bg-white">
-                            <div className="w-full aspect-square flex items-center justify-center rounded-lg overflow-hidden bg-gray-50">
-                              {itemRight.imageUrl ? (
-                                <img
-                                  src={itemRight.imageUrl}
-                                  alt={itemRight.productTitle}
-                                  className="w-full h-full object-contain"
-                                />
-                              ) : (
-                                <span className="text-4xl text-gray-300">🏪</span>
-                              )}
-                            </div>
-                            <p className="text-xs font-semibold text-orange-600 truncate">{itemRight.retailerName}</p>
-                            <p className="text-sm font-bold text-gray-900">{itemRight.priceDisplay || `$${itemRight.price.toFixed(2)}`}</p>
-                            <p className="text-xs text-gray-500 leading-relaxed line-clamp-3" title={itemRight.productTitle}>{itemRight.productTitle}</p>
-                          </div>
+                          <RetailerColumn item={itemRight} />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50">
                             <p className="text-xs text-gray-400 italic text-center">Not found at other retailers</p>
@@ -220,7 +212,7 @@ export default function Home() {
                           {candidate.items.slice(2).map((item) => (
                             <div key={item.retailerId} className="flex items-center gap-2 text-xs text-gray-500">
                               <span className="font-medium">{item.retailerName}:</span>
-                              <span className="font-bold text-gray-800">{item.priceDisplay || `$${item.price.toFixed(2)}`}</span>
+                              <span className="font-bold text-gray-800">{item.priceDisplay || (typeof item.price === 'number' ? `$${item.price.toFixed(2)}` : '')}</span>
                             </div>
                           ))}
                         </div>
