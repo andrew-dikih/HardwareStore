@@ -53,6 +53,7 @@ public class SerpApiLowesClient : IRetailerSearchClient
 
     private static bool IsLowesResult(ShoppingResult r) =>
         (r.Source != null && r.Source.Contains("Lowe", StringComparison.OrdinalIgnoreCase)) ||
+        (r.DirectLink != null && r.DirectLink.Contains("lowes.com", StringComparison.OrdinalIgnoreCase)) ||
         (r.Link != null && r.Link.Contains("lowes.com", StringComparison.OrdinalIgnoreCase));
 
     private static RetailerProductResult MapProduct(ShoppingResult r) => new()
@@ -60,7 +61,7 @@ public class SerpApiLowesClient : IRetailerSearchClient
         RetailerId = "lowes",
         RetailerName = "Lowe's",
         ProductTitle = r.Title ?? string.Empty,
-        ProductUrl = r.ProductLink ?? r.Link ?? string.Empty,
+        ProductUrl = r.DirectLink ?? r.ProductLink ?? r.Link ?? string.Empty,
         ImageUrl = r.Thumbnail,
         Price = ParsePrice(r.Price),
         PriceDisplay = r.Price ?? string.Empty,
@@ -93,6 +94,9 @@ public class SerpApiLowesClient : IRetailerSearchClient
 
         [JsonPropertyName("price")]
         public string? Price { get; set; }
+
+        [JsonPropertyName("direct_link")]
+        public string? DirectLink { get; set; }
 
         [JsonPropertyName("link")]
         public string? Link { get; set; }

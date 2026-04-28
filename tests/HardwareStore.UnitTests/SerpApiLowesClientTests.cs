@@ -154,7 +154,32 @@ public class SerpApiLowesClientTests
     }
 
     [Fact]
-    public async Task SearchProductAsync_WithProductLink_UsesProductLinkOverLink()
+    public async Task SearchProductAsync_WithDirectLink_UsesDirectLinkOverProductLinkAndLink()
+    {
+        var json = """
+            {
+                "shopping_results": [
+                    {
+                        "title": "Moen Faucet",
+                        "price": "$209.00",
+                        "link": "https://www.google.com/shopping/product/1/specs",
+                        "product_link": "https://www.google.com/shopping/product/1",
+                        "direct_link": "https://www.lowes.com/pd/Moen-Faucet/5000058723",
+                        "source": "Lowe's"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("faucet", new Retailer());
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/Moen-Faucet/5000058723", results[0].ProductUrl);
+    }
+
+    [Fact]
+    public async Task SearchProductAsync_WithProductLink_UsesProductLinkWhenNoDirectLink()
     {
         var json = """
             {
@@ -174,6 +199,7 @@ public class SerpApiLowesClientTests
         var results = await client.SearchProductAsync("faucet", new Retailer());
 
         Assert.Single(results);
+        // product_link is used because direct_link is absent
         Assert.Equal("https://www.lowes.com/pd/Moen-Faucet/5000058723", results[0].ProductUrl);
     }
 
@@ -271,6 +297,30 @@ public class SerpApiLowesClientTests
 
         Assert.Single(results);
         Assert.Equal(24.98m, results[0].Price);
+    }
+
+    [Fact]
+    public async Task SearchProductAsync_WithLowesDirectLinkButNonLowesSource_RecognizesAsLowesProduct()
+    {
+        var json = """
+            {
+                "shopping_results": [
+                    {
+                        "title": "Drill Bit Set",
+                        "price": "$29.00",
+                        "link": "https://www.google.com/shopping/product/2/specs",
+                        "direct_link": "https://www.lowes.com/pd/drill-bit-set/987654",
+                        "source": "Some Marketplace"
+                    }
+                ]
+            }
+            """;
+
+        var client = CreateClient(OkJson(json));
+        var results = await client.SearchProductAsync("drill bit", new Retailer());
+
+        Assert.Single(results);
+        Assert.Equal("https://www.lowes.com/pd/drill-bit-set/987654", results[0].ProductUrl);
     }
 
     // ── Filtering ─────────────────────────────────────────────────────────────
