@@ -55,7 +55,7 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
         RetailerName = "Home Depot",
         ProductTitle = p.Title ?? string.Empty,
         ProductUrl = NormalizeHomeDepotUrl(p.Link) ?? string.Empty,
-        ImageUrl = p.Thumbnail,
+        ImageUrl = NormalizeHomeDepotImageUrl(p.Thumbnail),
         Price = p.Price,
         PriceDisplay = p.Price > 0 ? $"${p.Price:F2}" : string.Empty,
         IsAvailable = true,
@@ -64,6 +64,9 @@ public class SerpApiHomeDepotClient : IRetailerSearchClient
 
     private static string? NormalizeHomeDepotUrl(string? url) =>
         url?.Replace("apionline.homedepot.com", "www.homedepot.com", StringComparison.OrdinalIgnoreCase);
+
+    private static string? NormalizeHomeDepotImageUrl(string? url) =>
+        url?.Replace("apionline.homedepot.com", "images.thdstatic.com", StringComparison.OrdinalIgnoreCase);
 
     private sealed class HomeDepotSearchResponse
     {
