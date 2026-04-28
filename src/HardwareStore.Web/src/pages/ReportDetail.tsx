@@ -23,12 +23,27 @@ function ProductCard({ product }: { product: ProductComparison }) {
   const sorted = [...product.retailerResults].sort((a, b) => a.price - b.price);
   const minPrice = sorted[0]?.price;
 
+  const handleOpenAllTabs = () => {
+    product.retailerResults
+      .filter((r) => r.productUrl && r.isAvailable)
+      .forEach((r) => window.open(r.productUrl, '_blank', 'noopener,noreferrer'));
+  };
+
+  const hasAnyUrl = product.retailerResults.some((r) => r.productUrl && r.isAvailable);
+
   return (
     <div className="border border-gray-200 rounded-xl overflow-hidden">
-      <div className="bg-gray-50 px-4 py-3 border-b border-gray-200">
-        <p className="font-semibold text-gray-800">{product.productName}</p>
+      <div
+        className={`bg-gray-50 px-4 py-3 border-b border-gray-200 ${hasAnyUrl ? 'cursor-pointer group hover:bg-orange-50' : ''}`}
+        onClick={hasAnyUrl ? handleOpenAllTabs : undefined}
+        title={hasAnyUrl ? 'Open all retailers for this product' : undefined}
+      >
+        <p className={`font-semibold text-gray-800 ${hasAnyUrl ? 'group-hover:text-orange-600 group-hover:underline transition' : ''}`}>{product.productName}</p>
         {product.isAdditional && (
           <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">Add-on</span>
+        )}
+        {hasAnyUrl && (
+          <p className="text-xs text-orange-500 mt-0.5">Click to view at all retailers →</p>
         )}
       </div>
       <div className="divide-y divide-gray-100">
@@ -51,8 +66,13 @@ function RetailerRow({
   result: RetailerProductResult;
   isBest: boolean;
 }) {
+  const isClickable = Boolean(result.productUrl && result.isAvailable);
   return (
-    <div className={`px-4 py-3 flex items-start justify-between gap-3 ${isBest ? 'bg-green-50' : ''}`}>
+    <div
+      className={`px-4 py-3 flex items-start justify-between gap-3 transition ${isBest ? 'bg-green-50' : ''} ${isClickable ? 'cursor-pointer hover:bg-orange-50' : ''}`}
+      onClick={isClickable ? () => window.open(result.productUrl, '_blank', 'noopener,noreferrer') : undefined}
+      title={isClickable ? `View at ${result.retailerName}` : undefined}
+    >
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-1 flex-wrap">
           <span className="text-sm font-medium text-gray-700">{result.retailerName}</span>
@@ -74,19 +94,12 @@ function RetailerRow({
       <div className="text-right shrink-0">
         {result.isAvailable ? (
           <>
-            <p className="font-bold text-gray-900">{result.priceDisplay || formatCurrency(result.price)}</p>
+            <p className={`font-bold text-gray-900 ${isClickable ? 'text-orange-700' : ''}`}>{result.priceDisplay || formatCurrency(result.price)}</p>
             {result.normalizedPriceDisplay && (
               <p className="text-xs text-gray-400">{result.normalizedPriceDisplay}</p>
             )}
-            {result.productUrl && (
-              <a
-                href={result.productUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-xs text-orange-600 hover:underline"
-              >
-                View →
-              </a>
+            {isClickable && (
+              <p className="text-xs text-orange-500 mt-0.5">View →</p>
             )}
           </>
         ) : (

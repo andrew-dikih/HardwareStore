@@ -71,6 +71,7 @@ export interface RetailerDto {
   name: string;
   logoUrl?: string;
   isSelected: boolean;
+  searchUrlTemplate?: string;
 }
 
 export interface ParseQueryResponse {

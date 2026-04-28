@@ -63,7 +63,8 @@ public class SearchController : ControllerBase
                     Id = r.Id,
                     Name = r.Name,
                     LogoUrl = r.LogoUrl,
-                    IsSelected = r.IsAvailableToAll
+                    IsSelected = r.IsAvailableToAll,
+                    SearchUrlTemplate = BuildSearchUrlTemplate(r)
                 }).ToList()
             });
         }
@@ -161,6 +162,17 @@ public class SearchController : ControllerBase
             completedAt = s.CompletedAt
         }));
     }
+
+    private static string? BuildSearchUrlTemplate(HardwareStore.Core.Models.Retailer retailer)
+    {
+        if (string.IsNullOrWhiteSpace(retailer.BaseUrl)) return null;
+        return retailer.ScraperType switch
+        {
+            "HomeDepot" or "SerpApiHomeDepot" => $"{retailer.BaseUrl}/s/{{searchTerm}}",
+            "Lowes" or "SerpApiLowes" => $"{retailer.BaseUrl}/search?searchTerm={{searchTerm}}",
+            _ => $"{retailer.BaseUrl}/search?q={{searchTerm}}"
+        };
+    }
 }
 
 public record ParseQueryRequest(
@@ -182,6 +194,7 @@ public class RetailerDto
     public string Name { get; set; } = string.Empty;
     public string? LogoUrl { get; set; }
     public bool IsSelected { get; set; }
+    public string? SearchUrlTemplate { get; set; }
 }
 
 public class CreateSearchRequest
