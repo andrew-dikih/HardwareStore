@@ -190,7 +190,7 @@ export default function Home() {
                         {itemLeft ? (
                           <RetailerColumn
                             item={itemLeft}
-                            onClick={itemLeft.productUrl ? () => window.open(itemLeft.productUrl!, '_blank', 'noopener,noreferrer') : undefined}
+                            onClick={itemLeft.productUrl ? () => window.open(itemLeft.productUrl, '_blank', 'noopener,noreferrer') : undefined}
                           />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50 aspect-square">
@@ -202,7 +202,7 @@ export default function Home() {
                         {itemRight ? (
                           <RetailerColumn
                             item={itemRight}
-                            onClick={itemRight.productUrl ? () => window.open(itemRight.productUrl!, '_blank', 'noopener,noreferrer') : undefined}
+                            onClick={itemRight.productUrl ? () => window.open(itemRight.productUrl, '_blank', 'noopener,noreferrer') : undefined}
                           />
                         ) : (
                           <div className="flex items-center justify-center border border-dashed border-gray-200 rounded-xl p-2.5 bg-gray-50">
