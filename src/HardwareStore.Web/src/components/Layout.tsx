@@ -1,11 +1,16 @@
 import type { ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
+import { fullBleedPaths } from '../config/site';
 import Navbar from './Navbar';
 
 export default function Layout({ children }: { children: ReactNode }) {
+  const location = useLocation();
+  const isFullBleedPage = fullBleedPaths.has(location.pathname);
+
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-      <main className="flex-1 max-w-5xl mx-auto w-full px-4 py-6">
+    <div className={`min-h-screen flex flex-col ${isFullBleedPage ? 'bg-[#050816]' : 'bg-gray-50'}`}>
+      {!isFullBleedPage && <Navbar />}
+      <main className={isFullBleedPage ? 'flex-1' : 'flex-1 max-w-5xl mx-auto w-full px-4 py-6'}>
         {children}
       </main>
     </div>
