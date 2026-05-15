@@ -1,6 +1,9 @@
 import { Link } from 'react-router-dom';
-
-const shareUrl = 'https://hardwarestore-develop-web.happysand-3d660167.westus3.azurecontainerapps.io/jamies-super-good-media';
+import {
+  jamiesSuperGoodMediaAzureUrl,
+  jamiesSuperGoodMediaContact,
+  jamiesSuperGoodMediaPath,
+} from '../config/site';
 
 const services = [
   {
@@ -125,7 +128,7 @@ export default function JamiesSuperGoodMedia() {
       </section>
 
       <section className="border-y border-slate-900 bg-slate-950/80">
-        <div className="max-w-6xl mx-auto px-6 py-18 sm:px-8 lg:px-10">
+        <div className="max-w-6xl mx-auto px-6 py-20 sm:px-8 lg:px-10">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-3">
               <p className="text-sm font-medium uppercase tracking-[0.35em] text-sky-300">Media, your way</p>
@@ -150,7 +153,7 @@ export default function JamiesSuperGoodMedia() {
         </div>
       </section>
 
-      <section className="max-w-6xl mx-auto px-6 py-18 sm:px-8 lg:px-10">
+      <section className="max-w-6xl mx-auto px-6 py-20 sm:px-8 lg:px-10">
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
           <div className="rounded-[2rem] border border-slate-800 bg-gradient-to-br from-slate-900 to-slate-950 p-8">
             <p className="text-sm font-medium uppercase tracking-[0.35em] text-sky-300">About us</p>
@@ -179,23 +182,23 @@ export default function JamiesSuperGoodMedia() {
             </p>
 
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
-              <a href="mailto:hello@jsgmedia.example" className="rounded-[1.5rem] border border-slate-800 bg-slate-950/70 p-5 transition hover:border-sky-400/60">
+              <a href={`mailto:${jamiesSuperGoodMediaContact.email}`} className="rounded-[1.5rem] border border-slate-800 bg-slate-950/70 p-5 transition hover:border-sky-400/60">
                 <p className="text-sm text-slate-400">Email</p>
-                <p className="mt-2 text-lg font-semibold text-white">hello@jsgmedia.example</p>
+                <p className="mt-2 text-lg font-semibold text-white">{jamiesSuperGoodMediaContact.email}</p>
               </a>
-              <a href="tel:+15550100101" className="rounded-[1.5rem] border border-slate-800 bg-slate-950/70 p-5 transition hover:border-sky-400/60">
+              <a href={`tel:${jamiesSuperGoodMediaContact.phoneHref}`} className="rounded-[1.5rem] border border-slate-800 bg-slate-950/70 p-5 transition hover:border-sky-400/60">
                 <p className="text-sm text-slate-400">Phone</p>
-                <p className="mt-2 text-lg font-semibold text-white">(555) 010-0101</p>
+                <p className="mt-2 text-lg font-semibold text-white">{jamiesSuperGoodMediaContact.phoneDisplay}</p>
               </a>
             </div>
 
             <div className="mt-6 rounded-[1.5rem] border border-slate-800 bg-sky-400/10 p-5">
               <p className="text-sm font-medium text-sky-300">Shareable Azure URL</p>
-              <a href={shareUrl} className="mt-3 block break-all text-sm text-white underline decoration-sky-400/50 underline-offset-4 hover:text-sky-200">
-                {shareUrl}
+              <a href={jamiesSuperGoodMediaAzureUrl} className="mt-3 block break-all text-sm text-white underline decoration-sky-400/50 underline-offset-4 hover:text-sky-200">
+                {jamiesSuperGoodMediaAzureUrl}
               </a>
               <p className="mt-3 text-sm text-slate-300">
-                This route will be available after the app deploys from <span className="font-semibold text-white">develop</span>.
+                This route will be available after the app deploys from <span className="font-semibold text-white">develop</span> at <span className="font-semibold text-white">{jamiesSuperGoodMediaPath}</span>.
               </p>
             </div>
           </div>

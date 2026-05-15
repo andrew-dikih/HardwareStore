@@ -11,6 +11,7 @@ import Reports from './pages/Reports';
 import ReportDetail from './pages/ReportDetail';
 import Admin from './pages/Admin';
 import JamiesSuperGoodMedia from './pages/JamiesSuperGoodMedia';
+import { jamiesSuperGoodMediaPath } from './config/site';
 
 export default function App() {
   return (
@@ -23,7 +24,7 @@ export default function App() {
             <Route path="/signup" element={<Signup />} />
             <Route path="/status/:id" element={<SearchStatus />} />
             <Route path="/public/report/:id" element={<ReportDetail isPublic />} />
-            <Route path="/jamies-super-good-media" element={<JamiesSuperGoodMedia />} />
+            <Route path={jamiesSuperGoodMediaPath} element={<JamiesSuperGoodMedia />} />
 
             {/* Protected routes */}
             <Route element={<RequireAuth />}>
