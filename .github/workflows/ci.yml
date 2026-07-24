@@ -7,8 +7,40 @@ on:
       - develop
 
 jobs:
+  detect-changes:
+    name: Detect relevant changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - id: filter
+        name: Classify changed files
+        run: |
+          git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
+          CHANGED="$(git diff --name-only "origin/${{ github.base_ref }}"...HEAD)"
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          backend=false
+          while IFS= read -r path; do
+            case "$path" in
+              src/*|tests/*|HardwareStore.sln|Directory.Build.props|Directory.Packages.props|global.json)
+                backend=true
+                ;;
+            esac
+          done <<< "$CHANGED"
+
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+
   unit-tests:
     name: Unit Tests
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,6 +95,8 @@ jobs:
 
   integration-tests:
     name: Integration Tests
+    needs: detect-changes
+    if: needs.detect-changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: read
