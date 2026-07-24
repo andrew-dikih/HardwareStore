@@ -22,10 +22,10 @@ jobs:
       artifact-name: ${{ steps.set-artifact.outputs.name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -58,7 +58,7 @@ jobs:
         run: echo "name=hardwarestore-api-${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: ${{ steps.set-artifact.outputs.name }}
           path: ${{ env.PUBLISH_DIR }}
@@ -74,13 +74,13 @@ jobs:
       url: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: ${{ env.PUBLISH_DIR }}
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           # TODO: Add AZURE_CREDENTIALS secret to repository secrets
           # Generate with: az ad sp create-for-rbac --name "HardwareStore-Deploy" --role contributor \
