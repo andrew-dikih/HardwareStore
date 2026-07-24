@@ -7,27 +7,67 @@ on:
       - develop
 
 jobs:
+  detect-changes:
+    name: Detect relevant changes
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - id: filter
+        name: Classify changed files
+        run: |
+          CHANGED="$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")"
+          echo "Changed files:"
+          echo "$CHANGED"
+
+          backend=false
+          while IFS= read -r path; do
+            case "$path" in
+              src/*|tests/*|HardwareStore.sln|Directory.Build.props|Directory.Packages.props|global.json)
+                backend=true
+                ;;
+            esac
+          done <<< "$CHANGED"
+
+          echo "backend=$backend" >> "$GITHUB_OUTPUT"
+
   unit-tests:
     name: Unit Tests
+    needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Skip unit tests when no backend files changed
+        if: needs.detect-changes.outputs.backend != 'true'
+        run: echo "No backend changes detected; skipping unit tests."
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        if: needs.detect-changes.outputs.backend == 'true'
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
+        if: needs.detect-changes.outputs.backend == 'true'
         run: dotnet restore
 
       - name: Build
+        if: needs.detect-changes.outputs.backend == 'true'
         run: dotnet build --no-restore --configuration Release
 
       - name: Run unit tests with coverage
+        if: needs.detect-changes.outputs.backend == 'true'
         run: |
           dotnet test tests/HardwareStore.UnitTests/HardwareStore.UnitTests.csproj \
             --no-build \
@@ -37,6 +77,7 @@ jobs:
             -- DataCollectionRunSettings.DataCollectors.DataCollector.Configuration.Format=opencover
 
       - name: Check coverage threshold
+        if: needs.detect-changes.outputs.backend == 'true'
         uses: danielpalme/ReportGenerator-GitHub-Action@5
         with:
           reports: coverage/**/coverage.opencover.xml
@@ -45,6 +86,7 @@ jobs:
           verbosity: Warning
 
       - name: Enforce 70% coverage
+        if: needs.detect-changes.outputs.backend == 'true'
         run: |
           COVERAGE=$(grep -oP 'Line coverage: \K[0-9.]+' coverage/report/Summary.txt || echo "0")
           echo "Line coverage: $COVERAGE%"
@@ -56,32 +98,42 @@ jobs:
           echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        if: needs.detect-changes.outputs.backend == 'true'
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-report
           path: coverage/report
 
   integration-tests:
     name: Integration Tests
+    needs: detect-changes
     runs-on: ubuntu-latest
     permissions:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
+
+      - name: Skip integration tests when no backend files changed
+        if: needs.detect-changes.outputs.backend != 'true'
+        run: echo "No backend changes detected; skipping integration tests."
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        if: needs.detect-changes.outputs.backend == 'true'
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
       - name: Restore dependencies
+        if: needs.detect-changes.outputs.backend == 'true'
         run: dotnet restore
 
       - name: Build
+        if: needs.detect-changes.outputs.backend == 'true'
         run: dotnet build --no-restore --configuration Release
 
       - name: Run integration tests
+        if: needs.detect-changes.outputs.backend == 'true'
         run: |
           dotnet test tests/HardwareStore.IntegrationTests/HardwareStore.IntegrationTests.csproj \
             --no-build \
@@ -90,8 +142,8 @@ jobs:
             --results-directory ./test-results
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
-        if: always()
+        if: needs.detect-changes.outputs.backend == 'true' && always()
+        uses: actions/upload-artifact@v5
         with:
           name: integration-test-results
           path: test-results

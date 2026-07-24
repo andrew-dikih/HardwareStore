@@ -16,7 +16,7 @@ jobs:
       issues: write
     steps:
       - name: Post Copilot agent comment
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const review = context.payload.review;
