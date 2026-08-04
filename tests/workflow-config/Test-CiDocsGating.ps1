@@ -208,4 +208,72 @@ if ($classifierFailures.Count -gt 0) {
 }
 
 Write-Host "PASSED: three-state docs-only classifier regression suite ($classifierCaseCount cases)." -ForegroundColor Green
+
+# =============================================================================
+# Anti-regression guard: reject unqualified claims that `workflow_dispatch`
+# can satisfy/unstick a pull request's required status check.
+#
+# This is a real defect class we hit once already (a workflow comment stated
+# dispatch "lets a maintainer re-run CI to satisfy a required status check
+# that is stuck pending" - false: dispatch runs against a chosen ref and
+# never attaches a status to a specific PR head). This guard scans every
+# workflow file and doc file that could plausibly discuss the dispatch
+# escape hatch, and fails if it finds "satisfy"/"unstick" near
+# "required"/"pending"/"stuck" WITHOUT a nearby negation word. Correct text
+# always negates ("does not", "cannot", "never", "no way to", ...); a
+# regression re-introducing the false claim will have no such negation
+# nearby and will be caught.
+# =============================================================================
+
+$dispatchClaimFailures = New-Object System.Collections.Generic.List[string]
+$negationWords = @('not', 'never', 'cannot', "can't", "doesn't", 'no way', 'does not', 'no longer', 'without', "won't")
+$claimTermRegex = [regex]'(?i)(satisf(?:y|ies|ied)|unstick)'
+$contextTermRegex = [regex]'(?i)(required|pending|stuck)'
+$contextWindow = 90
+
+function Test-DispatchClaimSafety([string]$relativePath, [string]$content) {
+    foreach ($m in $claimTermRegex.Matches($content)) {
+        $start = [Math]::Max(0, $m.Index - $contextWindow)
+        $end = [Math]::Min($content.Length, $m.Index + $m.Length + $contextWindow)
+        $window = $content.Substring($start, $end - $start)
+
+        if (-not $contextTermRegex.IsMatch($window)) {
+            continue # "satisfy"/"unstick" not talking about a required/pending/stuck check here.
+        }
+
+        $hasNegation = $false
+        foreach ($n in $negationWords) {
+            if ($window -match "(?i)\b$([regex]::Escape($n))\b") { $hasNegation = $true; break }
+        }
+        if (-not $hasNegation) {
+            $snippet = ($window -replace '\s+', ' ').Trim()
+            $dispatchClaimFailures.Add("[$relativePath] unqualified dispatch-satisfies-check claim near: ...$snippet...")
+        }
+    }
+}
+
+$filesToScanForDispatchClaims = @(
+    '.github\workflows\ci.yml',
+    '.github\workflows\deploy.yml',
+    '.github\workflows\copilot-setup-steps.yml',
+    '.github\workflows\setup-repository.yml',
+    '.github\workflows\copilot-on-changes-requested.yml',
+    '.github\workflows\label-check.yml',
+    '.github\copilot-instructions.md',
+    '.github\PULL_REQUEST_TEMPLATE.md'
+)
+
+foreach ($relative in $filesToScanForDispatchClaims) {
+    $fullPath = Join-Path $repoRoot $relative
+    if (-not (Test-Path $fullPath)) { continue }
+    Test-DispatchClaimSafety $relative (Get-Content -Raw $fullPath)
+}
+
+if ($dispatchClaimFailures.Count -gt 0) {
+    Write-Host "FAILED: workflow_dispatch false-claim guard" -ForegroundColor Red
+    $dispatchClaimFailures | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
+    exit 1
+}
+
+Write-Host "PASSED: no unqualified workflow_dispatch-satisfies-required-check claims found in workflows or docs." -ForegroundColor Green
 exit 0

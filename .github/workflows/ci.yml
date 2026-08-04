@@ -17,11 +17,13 @@ on:
       - 'README.md'
       - 'LICENSE'
       - 'docs/**'
-  # Manual escape hatch: lets a maintainer re-run CI to satisfy a required
-  # status check that is stuck "pending" (e.g. a docs-only PR merging into a
-  # branch whose protection still expects "Unit Tests"/"Integration Tests"),
-  # or to manually validate a change GitHub could not classify (>=3,000
-  # changed files - see comment above).
+  # Manual escape hatch: lets a maintainer independently validate this
+  # pipeline against a chosen branch/ref (e.g. a change GitHub could not
+  # classify because it touched >=3,000 files - see comment above). This
+  # does NOT attach a status to any pull request head, so it can never
+  # satisfy or unstick a PR's required "Unit Tests"/"Integration Tests"
+  # check that is stuck "pending" due to a skipped run - see
+  # copilot-instructions.md#ci-docs-only-automation-gating.
   workflow_dispatch:
 
 jobs:
