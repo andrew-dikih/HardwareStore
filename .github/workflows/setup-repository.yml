@@ -16,7 +16,7 @@ jobs:
     if: ${{ github.event.inputs.confirm == 'yes' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # Needs a PAT with 'repo' and 'admin:repo_hook' scopes to manage branch protection.
           # Create a fine-grained PAT with "Administration (read & write)" repository permission
