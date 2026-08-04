@@ -1,9 +1,32 @@
 name: CD - Deploy to Azure
 
+# Passive-docs gating: a push that ONLY touches README/LICENSE/docs never
+# triggers a deployment. `paths-ignore` skips the run only when *every*
+# changed file (two-dot diff for pushes) matches one of these patterns; any
+# other file (including anything under .github/, src/, tests/, or config/infra)
+# still runs the full build-and-push-and-deploy pipeline. This boundary is
+# intentionally identical to ci.yml's - see
+# .github/copilot-instructions.md#ci-docs-only-automation-gating for the full
+# definition and the GitHub 3,000-file evaluation limit.
+#
+# Note: unlike ci.yml, none of this workflow's jobs ("Build and Push Docker
+# Images", "Deploy to Azure Container Apps") are configured as required status
+# checks in branch protection, so skipping this workflow entirely for
+# docs-only pushes carries no "stuck pending check" risk.
 on:
   push:
     branches:
       - develop
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+  # Manual escape hatch: lets a maintainer manually validate/dispatch a
+  # deployment GitHub could not classify (>=3,000 changed files) instead of
+  # relying on the automatic path-filter skip. Note this only lets you
+  # re-run/validate the pipeline against a chosen ref - it does not attach a
+  # required status to any pull request head (see copilot-instructions.md).
+  workflow_dispatch:
 
 env:
   REGISTRY: ${{ vars.AZURE_REGISTRY_URL }}
@@ -20,7 +43,7 @@ jobs:
       image-tag: ${{ steps.tag.outputs.tag }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Set image tag
         id: tag
@@ -59,7 +82,7 @@ jobs:
       url: https://hardwarestore-develop-web.happysand-3d660167.westus3.azurecontainerapps.io
     steps:
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 

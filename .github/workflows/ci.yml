@@ -1,10 +1,28 @@
 name: CI - Tests and Coverage
 
+# Passive-docs gating: PRs that ONLY touch the paths below (README/LICENSE/docs)
+# never trigger this workflow, so they consume zero GitHub-hosted runner minutes.
+# `paths-ignore` skips the run only when *every* changed file matches one of
+# these patterns (a "three-dot diff" for pull requests) - a single file outside
+# this list (including anything under .github/, src/, or tests/) still runs the
+# full suite. See .github/copilot-instructions.md#ci-docs-only-automation-gating
+# for the full boundary definition, the GitHub 3,000-file evaluation limit, and
+# the manual-override procedure for branch-protection-required-check edge cases.
 on:
   pull_request:
     branches:
       - main
       - develop
+    paths-ignore:
+      - 'README.md'
+      - 'LICENSE'
+      - 'docs/**'
+  # Manual escape hatch: lets a maintainer re-run CI to satisfy a required
+  # status check that is stuck "pending" (e.g. a docs-only PR merging into a
+  # branch whose protection still expects "Unit Tests"/"Integration Tests"),
+  # or to manually validate a change GitHub could not classify (>=3,000
+  # changed files - see comment above).
+  workflow_dispatch:
 
 jobs:
   unit-tests:
@@ -14,10 +32,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -56,7 +74,7 @@ jobs:
           echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/report
@@ -68,10 +86,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '8.0.x'
 
@@ -90,7 +108,7 @@ jobs:
             --results-directory ./test-results
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-test-results
