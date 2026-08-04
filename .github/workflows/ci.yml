@@ -5,6 +5,26 @@ on:
     branches:
       - main
       - develop
+    # Passive-documentation boundary: skip CI entirely (zero runner minutes)
+    # for pull requests that ONLY touch Markdown docs outside automation,
+    # deployable-output, and legal/metadata surfaces. Any diff containing at
+    # least one non-listed file still runs full CI (paths-ignore only skips
+    # when EVERY changed file matches). See .github/DOCS_ONLY_CI_POLICY.md
+    # for the full rationale, the required-status-check caveat, and the
+    # >=3,000-changed-files limitation this boundary does not attempt to
+    # override.
+    paths-ignore:
+      - '**/*.md'
+      - '!.github/**'
+      - '!**/public/**'
+      - '!**/wwwroot/**'
+      - '!**/dist/**'
+      - '!**/build/**'
+      - '!**/bin/**'
+      - '!**/obj/**'
+      - '!LICENSE'
+      - '!LICENSE.md'
+      - '!LICENSE.txt'
 
 jobs:
   unit-tests:
@@ -14,10 +34,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
@@ -56,7 +76,7 @@ jobs:
           echo "Coverage check passed: $COVERAGE% >= $THRESHOLD%"
 
       - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: coverage-report
           path: coverage/report
@@ -68,10 +88,10 @@ jobs:
       contents: read
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: '8.0.x'
 
@@ -90,7 +110,7 @@ jobs:
             --results-directory ./test-results
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-test-results

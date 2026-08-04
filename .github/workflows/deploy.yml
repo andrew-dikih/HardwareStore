@@ -4,6 +4,22 @@ on:
   push:
     branches:
       - main
+    # Passive-documentation boundary: mirrors ci.yml's pull_request filter so
+    # a docs-only push to main never triggers a deploy. Any diff containing
+    # at least one non-listed file still deploys (paths-ignore only skips
+    # when EVERY changed file matches). See .github/DOCS_ONLY_CI_POLICY.md.
+    paths-ignore:
+      - '**/*.md'
+      - '!.github/**'
+      - '!**/public/**'
+      - '!**/wwwroot/**'
+      - '!**/dist/**'
+      - '!**/build/**'
+      - '!**/bin/**'
+      - '!**/obj/**'
+      - '!LICENSE'
+      - '!LICENSE.md'
+      - '!LICENSE.txt'
 
 env:
   # TODO: Fill in your Azure configuration values and add corresponding secrets
@@ -22,10 +38,10 @@ jobs:
       artifact-name: ${{ steps.set-artifact.outputs.name }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
@@ -58,7 +74,7 @@ jobs:
         run: echo "name=hardwarestore-api-${{ github.sha }}" >> "$GITHUB_OUTPUT"
 
       - name: Upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ steps.set-artifact.outputs.name }}
           path: ${{ env.PUBLISH_DIR }}
@@ -74,13 +90,13 @@ jobs:
       url: https://${{ vars.AZURE_WEBAPP_NAME }}.azurewebsites.net
     steps:
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ${{ needs.build.outputs.artifact-name }}
           path: ${{ env.PUBLISH_DIR }}
 
       - name: Login to Azure
-        uses: azure/login@v2
+        uses: azure/login@v3
         with:
           # TODO: Add AZURE_CREDENTIALS secret to repository secrets
           # Generate with: az ad sp create-for-rbac --name "HardwareStore-Deploy" --role contributor \
