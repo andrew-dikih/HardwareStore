@@ -120,10 +120,12 @@ jobs:
 
       - name: Summary
         run: |
-          echo "## Repository Setup Complete" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Configured:" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ \`develop\` branch created (or already existed)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ \`release\` label created (or already existed)" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ \`main\` branch protection: direct push blocked, PR required, CI + label-check required" >> $GITHUB_STEP_SUMMARY
-          echo "- ✅ \`develop\` branch protection: direct push blocked, PR required, CI required" >> $GITHUB_STEP_SUMMARY
+          {
+            echo "## Repository Setup Complete"
+            echo ""
+            echo "### Configured:"
+            echo "- ✅ \`develop\` branch created (or already existed)"
+            echo "- ✅ \`release\` label created (or already existed)"
+            echo "- ✅ \`main\` branch protection: direct push blocked, PR required, CI + label-check required"
+            echo "- ✅ \`develop\` branch protection: direct push blocked, PR required, CI required"
+          } >> "$GITHUB_STEP_SUMMARY"
