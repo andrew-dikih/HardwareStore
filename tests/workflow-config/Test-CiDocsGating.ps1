@@ -72,8 +72,8 @@ if ($ciOn -notmatch '(?m)^\s*workflow_dispatch:\s*$') {
 $deployContent = Get-Content -Raw $deployPath
 $deployOn = Get-OnBlock $deployContent
 
-if ($deployOn -notmatch '(?ms)push:.*?branches:\s*\r?\n(?:\s+-\s.*\r?\n?)*\s+-\s*main') {
-    $failures.Add("[deploy.yml] push trigger no longer targets 'main'")
+if ($deployOn -notmatch '(?ms)push:.*?branches:\s*\r?\n(?:\s+-\s.*\r?\n?)*\s+-\s*develop') {
+    $failures.Add("[deploy.yml] push trigger no longer targets 'develop'")
 }
 Assert-DocsBoundary 'deploy.yml' (Get-PathsIgnore $deployOn)
 if ($deployOn -notmatch '(?m)^\s*workflow_dispatch:\s*$') {
@@ -88,4 +88,124 @@ if ($failures.Count -gt 0) {
 }
 
 Write-Host "PASSED: ci.yml and deploy.yml docs-only gating trigger blocks match the documented boundary." -ForegroundColor Green
+
+# =============================================================================
+# Three-state local classifier + regression suite
+#
+# Mirrors (does not call) GitHub's real paths-ignore evaluation so the
+# documented boundary and its documented limits (empty/incomplete diff,
+# >=3,000-file diff) can be regression-tested locally without hitting the
+# GitHub API. This is NOT a replacement for GitHub's own evaluation - it is a
+# local sanity/regression tool that fails loudly if someone changes
+# $expectedDocsBoundary above without updating this suite, or if the
+# classification logic itself drifts from the documented semantics.
+#
+# States:
+#   'docs-only'           - every path matches the passive-doc boundary
+#   'automation-required'  - at least one path falls outside the boundary
+#   'indeterminate'         - empty/null/incomplete file list, or >=3000 files
+#                             (GitHub only evaluates the first 3,000 files in a
+#                             diff against paths/paths-ignore - see
+#                             copilot-instructions.md#ci-docs-only-automation-gating)
+# =============================================================================
+
+$GitHubPathFilterEvaluationLimit = 3000
+
+function ConvertTo-GlobRegex([string]$pattern) {
+    # Minimal glob->regex translator sufficient for our boundary patterns:
+    # '**' matches any characters (incl. '/'), '*' matches any run of
+    # non-'/' characters. Everything else is a literal.
+    $escaped = [regex]::Escape($pattern)
+    $escaped = $escaped -replace '\\\*\\\*', '.*'
+    $escaped = $escaped -replace '\\\*', '[^/]*'
+    return "^$escaped$"
+}
+
+function Get-DocsClassification {
+    param(
+        [AllowNull()][string[]]$ChangedFiles,
+        [string[]]$Boundary = $expectedDocsBoundary
+    )
+
+    # Indeterminate: null/empty (nothing to classify - upstream data was
+    # missing or incomplete) or too large for GitHub to reliably evaluate.
+    if ($null -eq $ChangedFiles -or @($ChangedFiles).Count -eq 0) {
+        return 'indeterminate'
+    }
+    if (@($ChangedFiles).Count -ge $GitHubPathFilterEvaluationLimit) {
+        return 'indeterminate'
+    }
+
+    $boundaryRegexes = $Boundary | ForEach-Object { ConvertTo-GlobRegex $_ }
+    foreach ($file in $ChangedFiles) {
+        $matched = $false
+        foreach ($rx in $boundaryRegexes) {
+            if ($file -match $rx) { $matched = $true; break }
+        }
+        if (-not $matched) {
+            return 'automation-required'
+        }
+    }
+    return 'docs-only'
+}
+
+$classifierFailures = New-Object System.Collections.Generic.List[string]
+$classifierCaseCount = 0
+
+function Assert-Classification([string]$case, [string[]]$files, [string]$expected) {
+    $script:classifierCaseCount++
+    $actual = Get-DocsClassification -ChangedFiles $files
+    if ($actual -ne $expected) {
+        $countDesc = if ($null -eq $files) { 'null' } else { "$($files.Count) file(s)" }
+        $classifierFailures.Add("[$case] expected '$expected' but got '$actual' ($countDesc)")
+    }
+}
+
+# Pure docs-only.
+Assert-Classification 'pure docs - single README' @('README.md') 'docs-only'
+Assert-Classification 'pure docs - full boundary set' @('README.md', 'LICENSE', 'docs/setup.md', 'docs/nested/deep/page.md') 'docs-only'
+
+# Mixed docs + code.
+Assert-Classification 'mixed - doc plus source' @('README.md', 'src/HardwareStore.Api/Program.cs') 'automation-required'
+Assert-Classification 'mixed - doc plus docs-boundary-lookalike' @('docs/readme.md', 'docsite/other.md') 'automation-required'
+
+# .github/** must never be swallowed by the boundary, even if it's a .md file.
+Assert-Classification '.github workflow file' @('.github/workflows/ci.yml') 'automation-required'
+Assert-Classification '.github markdown file' @('.github/copilot-instructions.md') 'automation-required'
+
+# Source tree, even documentation-shaped files within it, stays automation-required.
+Assert-Classification 'source - csharp file' @('src/HardwareStore.Api/Program.cs') 'automation-required'
+Assert-Classification 'source - nested README' @('src/HardwareStore.Web/README.md') 'automation-required'
+
+# tests/** stays automation-required.
+Assert-Classification 'tests tree' @('tests/HardwareStore.UnitTests/FooTests.cs') 'automation-required'
+Assert-Classification 'workflow-config test harness itself' @('tests/workflow-config/Test-CiDocsGating.ps1') 'automation-required'
+
+# Deployable/operational/config artifacts stay automation-required.
+Assert-Classification 'deployable - docker-compose' @('docker-compose.yml') 'automation-required'
+Assert-Classification 'deployable - dockerfile' @('src/HardwareStore.Api/Dockerfile') 'automation-required'
+Assert-Classification 'config - env example' @('.env.example') 'automation-required'
+Assert-Classification 'config - solution file' @('HardwareStore.slnx') 'automation-required'
+
+# Empty / incomplete input -> indeterminate, never silently treated as docs-only.
+Assert-Classification 'empty file list' @() 'indeterminate'
+Assert-Classification 'null file list (incomplete data)' $null 'indeterminate'
+
+# Threshold behavior around GitHub's 3,000-file evaluation limit.
+$justUnderThreshold = 1..($GitHubPathFilterEvaluationLimit - 1) | ForEach-Object { "docs/generated-$_.md" }
+Assert-Classification 'just under 3,000-file threshold, all docs' $justUnderThreshold 'docs-only'
+
+$atThreshold = 1..$GitHubPathFilterEvaluationLimit | ForEach-Object { "docs/generated-$_.md" }
+Assert-Classification 'at 3,000-file threshold, all docs' $atThreshold 'indeterminate'
+
+$overThreshold = 1..($GitHubPathFilterEvaluationLimit + 1) | ForEach-Object { "docs/generated-$_.md" }
+Assert-Classification 'over 3,000-file threshold, all docs' $overThreshold 'indeterminate'
+
+if ($classifierFailures.Count -gt 0) {
+    Write-Host "FAILED: docs-only classifier regression suite" -ForegroundColor Red
+    $classifierFailures | ForEach-Object { Write-Host " - $_" -ForegroundColor Red }
+    exit 1
+}
+
+Write-Host "PASSED: three-state docs-only classifier regression suite ($classifierCaseCount cases)." -ForegroundColor Green
 exit 0
