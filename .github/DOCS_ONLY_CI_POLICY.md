@@ -134,3 +134,8 @@ This same command runs in CI whenever `.github/**` changes (see
 `.github/workflows/actions-policy.yml`), so a change to the boundary that
 breaks an existing guarantee (e.g. someone removes the `.github/**`
 exclusion) fails the build instead of silently shipping.
+
+`.github/workflows/actions-policy.yml` also runs `actionlint` (including its
+built-in `shellcheck` integration) across every workflow file on the same
+trigger, so shell-quoting regressions in `run:` steps are caught alongside
+the boundary tests.
