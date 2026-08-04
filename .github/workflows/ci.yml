@@ -25,6 +25,11 @@ on:
       - '!LICENSE'
       - '!LICENSE.md'
       - '!LICENSE.txt'
+  # Manual escape hatch: lets a maintainer get a real, reported "Unit Tests" /
+  # "Integration Tests" status on demand (e.g. to unblock a required check
+  # that is legitimately pending after a docs-only skip, without bypassing
+  # branch protection blindly). See .github/DOCS_ONLY_CI_POLICY.md.
+  workflow_dispatch: {}
 
 jobs:
   unit-tests:

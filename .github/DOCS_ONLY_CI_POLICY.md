@@ -71,6 +71,11 @@ with this rollout's fail-closed requirement for mixed changes. Instead:
   maintainer can use GitHub's **"Merge without waiting for requirements to be
   met"** option for a PR that is genuinely docs-only. This is a conscious,
   human-in-the-loop decision, not blanket automation.
+- Both `ci.yml` and `deploy.yml` also carry a `workflow_dispatch` trigger as
+  a manual escape hatch: a maintainer can run either workflow on demand to
+  get a real, reported status (e.g. to satisfy a pending required check
+  deliberately, or to sanity-check a docs-only classification) without
+  guessing or bypassing branch protection blindly.
 - On `main`, `enforce_admins: true` (no bypass) — but per
   `.github/copilot-instructions.md`, PRs to `main` are deployment PRs and
   are expected to require the release label + full CI regardless, so this

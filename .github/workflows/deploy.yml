@@ -20,6 +20,11 @@ on:
       - '!LICENSE'
       - '!LICENSE.md'
       - '!LICENSE.txt'
+  # Manual escape hatch for a maintainer to explicitly trigger a deploy
+  # attempt (e.g. after confirming a docs-only push correctly skipped this
+  # workflow). Not invoked as part of this rollout. See
+  # .github/DOCS_ONLY_CI_POLICY.md.
+  workflow_dispatch: {}
 
 env:
   # TODO: Fill in your Azure configuration values and add corresponding secrets
